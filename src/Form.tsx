@@ -32,12 +32,15 @@ export default function Form(props: {changeStateCB: (value: string) => void}) {
         let data = value.split("_");
         const label = data[0];
         const type = data.length > 1 ? data[1] : "text";
-        setFormData(formData.concat({
-            id: Number(new Date()),
-            label: label,
-            type: type,
-            value: ""
-        }));
+        setFormData([
+            ...formData,
+            {
+                id: Number(new Date()),
+                label: label,
+                type: type,
+                value: ""
+            }
+        ])
         setValue("");
     }
 
