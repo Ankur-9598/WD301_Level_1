@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import AppContainer from './AppContainer';
-import Form from './Form';
-import Header from './Header';
-import Home from './Home';
+import Form from './components/Form';
+import Header from './components/Header';
+import Home from './components/Home';
 
 
 function App() {

@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import LabelledInput from './LabelledInput';
 
-const formFields = [
+interface formData {
+    title: string;
+    formFields: formField[];
+}
+interface formField {
+    id: number,
+    label: string,
+    type: string,
+    value: string
+}
+
+const formFields: formField[] = [
     { id: 1, label: "First Name", type: "text", value: ""},
     { id: 2, label: "Last Name", type: "text", value: ""},
     { id: 3, label: "Email", type: "email", value: ""},
@@ -23,7 +34,7 @@ export default function Form(props: {changeStateCB: (value: string) => void}) {
     const changeValue = (id: number, value: string) => {
         setFormData(formData.map(data => {
             if (data.id === id) {
-                data.value = value;
+                return { ...data, value: value };
             }
             return data;
         }));
