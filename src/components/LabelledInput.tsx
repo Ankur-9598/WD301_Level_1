@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 
 export default function LabelledInput(props: { id: number, label: string, value: string, type: string, changeValueCB: (id: number, value: string) => void, removeFieldCB: (id: number) => void }) {
 

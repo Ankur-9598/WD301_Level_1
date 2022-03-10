@@ -19,19 +19,19 @@ export default function Form(props: {formData: formData, hideActiveFormCB: () =>
     const titleRef = useRef<HTMLInputElement>(null);
     
     useEffect(() => {
-        document.title = "Form - " + props.formData.title;
+        document.title = "Form - " + formData.title;
         titleRef.current?.focus();
         return () => {
-            document.title = "React Typescript with Tailwindcss";
+            document.title = "Form Lists";
         }
-    }, []);
+    }, [formData.title]);
 
     useEffect(() => {
         let timeout = setTimeout(() => {
             props.saveFormDataCB(formData);
         }, 1000);
         return () => clearTimeout(timeout);
-    }, [formData]);
+    }, [formData, props]);
 
     // Reset the form fields...
     const resetForm = () => { 
