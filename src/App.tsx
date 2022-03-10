@@ -11,17 +11,15 @@ function App() {
     const changeState = (value: string) => setState(value);
 
     return (
-        <AppContainer>
-            <div className="mx-auto p-5 bg-white rounded-xl shadow-lg">
-                <Header
-                    title={"Welcome to react-typescript with tailwindcss course"}
-                />
-                { state === "home"
-                    ? <Home changeStateCB={changeState}/> 
-                    : <FormList changeStateCB={changeState} />
-                }
-            </div>
-        </AppContainer>
+        <div className="mx-auto p-5 bg-white rounded-xl shadow-lg">
+            <Header
+                title={"Welcome to react-typescript with tailwindcss course"}
+            />
+            { state === "home"
+                ? <Home changeStateCB={changeState}/> 
+                : <FormList changeStateCB={changeState} />
+            }
+        </div>
     );
 }
 
