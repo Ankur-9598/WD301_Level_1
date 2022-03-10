@@ -26,8 +26,7 @@ export default function Form(props: {changeStateCB: (value: string) => void}) {
 
     const resetForm = () => { 
         setFormData(formData.map(data => {
-            data.value = "";
-            return data;
+            return {...data, value: ""}
         }));
     }
 
