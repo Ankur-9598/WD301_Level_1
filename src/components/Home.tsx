@@ -8,7 +8,7 @@ export default function Home(props: {changeStateCB: (value: string) => void}) {
                 <img src={logo} alt="app-logo" className="animate-spin w-32 h-32" />
                 <span className="w-full self-center text-center font-bold text-xl">Welcome Home</span>
             </div>
-            <button onClick={() => props.changeStateCB("form")} className="px-6 py-2 bg-blue-600 rounded-lg text-white font-semibold text-lg mt-3">Open Form</button>
+            <button onClick={() => props.changeStateCB("form")} className="px-6 py-2 bg-blue-600 rounded-lg text-white font-semibold text-lg mt-3">Open Forms</button>
         </>
     );
 }

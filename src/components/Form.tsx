@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import LabelledInput from './LabelledInput';
 
 interface formData {
+    id: number;
     title: string;
     formFields: formField[];
 }
@@ -12,63 +13,104 @@ interface formField {
     value: string
 }
 
-const formFields: formField[] = [
-    { id: 1, label: "First Name", type: "text", value: ""},
-    { id: 2, label: "Last Name", type: "text", value: ""},
-    { id: 3, label: "Email", type: "email", value: ""},
-    { id: 4, label: "Phone Number", type: "tel", value: ""},
-    { id: 5, label: "Date of Birth", type: "date", value: ""}
-]
+export default function Form(props: {formData: formData, hideActiveFormCB: () => void, saveFormDataCB: (formData: formData) => void}) {
+    const [formData, setFormData] = useState(props.formData);
+    const [newField, setNewField] = useState("");
+    const titleRef = useRef<HTMLInputElement>(null);
+    
+    useEffect(() => {
+        document.title = "Form - " + props.formData.title;
+        titleRef.current?.focus();
+        return () => {
+            document.title = "React Typescript with Tailwindcss";
+        }
+    }, []);
 
-export default function Form(props: {changeStateCB: (value: string) => void}) {
-    const [formData, setFormData] = useState(formFields);
-    const [value, setValue] = useState("");
+    useEffect(() => {
+        let timeout = setTimeout(() => {
+            props.saveFormDataCB(formData);
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, [formData]);
 
+    // Reset the form fields...
     const resetForm = () => { 
-        setFormData(formData.map(data => {
-            data.value = "";
-            return data;
-        }));
+        setFormData({
+            ...formData,
+            formFields: formData.formFields.map(field => {
+                return {...field, value: ""}
+            })
+        });
     }
 
-    const changeValue = (id: number, value: string) => {
-        setFormData(formData.map(data => {
-            if (data.id === id) {
-                return { ...data, value: value };
-            }
-            return data;
-        }));
+    // Control the form field change value...
+    const handleFieldChange = (id: number, value: string) => {
+        setFormData({
+            ...formData,
+            formFields: formData.formFields.map(field => {
+                if(field.id === id) return {...field, value: value};
+                return field;
+            })
+        });
     }
+
+    const handleFormTitleChange = (value: string) => {
+        setFormData({
+            ...formData,
+            title: value
+        });
+    }
+
+    // Add a new field in the active form...
     const addField = () => {
-        let data = value.split("_");
+        let data = newField.split("_");
         const label = data[0];
         const type = data.length > 1 ? data[1] : "text";
-        setFormData([
+        setFormData({
             ...formData,
-            {
-                id: Number(new Date()),
-                label: label,
-                type: type,
-                value: ""
-            }
-        ])
-        setValue("");
+            formFields: [
+                ...formData.formFields,
+                {
+                    id: Number(new Date()),
+                    label: label,
+                    type: type,
+                    value: ""
+                }
+            ]
+        });
+        setNewField("");
     }
 
+    // Remove a field from the active form...
     const removeField = (id: number) => {
-        setFormData(formData.filter(data => data.id !== id));
+        setFormData({
+            ...formData,
+            formFields: formData.formFields.filter(field => field.id !== id)
+        });
     }
+
 
     return (
         <form action="p-2 divide-dotted divide-gray-500 divide-y-2">
-            {formData.map(field => (
+            <h3 className="text-xl font-bold">Active Form: {formData.title}</h3>
+            <div className="flex flex-row justify-between my-3 pb-2 border-b-2 border-b-stone-500">
+                <input 
+                    type="text" 
+                    className="w-3/4 p-2 border-2 border-gray-200 rounded-lg"
+                    value={formData.title}
+                    onChange={e => handleFormTitleChange(e.target.value)}
+                    placeholder="Form Title"
+                    ref={titleRef}
+                />
+            </div>
+            {formData.formFields.map(field => (
                 <LabelledInput 
                     key={field.id}
                     id={field.id}
                     label={field.label}
                     value={field.value}
                     type={field.type}
-                    changeValueCB={changeValue}
+                    changeValueCB={handleFieldChange}
                     removeFieldCB={removeField}
                 />
             ))}
@@ -76,8 +118,8 @@ export default function Form(props: {changeStateCB: (value: string) => void}) {
                 <input 
                     type="text" 
                     className="w-3/4 p-2 border-2 border-gray-200 rounded-lg"
-                    value={value}
-                    onChange={e => setValue(e.target.value)}
+                    value={newField}
+                    onChange={e => setNewField(e.target.value)}
                     placeholder="e.g. labelName_inputType"
                 />
                 <button
@@ -100,7 +142,7 @@ export default function Form(props: {changeStateCB: (value: string) => void}) {
                 Reset
             </button>
             <button 
-                onClick={() => props.changeStateCB("home")}
+                onClick={props.hideActiveFormCB}
                 type='button' 
                 className="px-6 py-2 bg-blue-600 rounded-lg text-white font-semibold text-lg mt-3 border-2 ml-2"
             >
