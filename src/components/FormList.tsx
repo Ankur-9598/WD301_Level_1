@@ -105,20 +105,20 @@ export default function FormList(props: {changeStateCB: (value: string) => void}
             :
                 <>
                     {localForms.map(form => (
-                        <div className="flex flex-row w-full justify-between items-center my-2 rounded-lg border-2 border-stone-400 py-2 px-4 shadow-sm" key={form.id}>
+                        <div className="flex flex-row w-full justify-between items-center my-2 rounded-lg py-2 px-4 shadow-sm bg-gray-100" key={form.id}>
                             <h2 className="text-xl font-medium">{form.title}</h2>
                             <div className="flex gap-2">
                                 <button 
                                     type="button"
                                     onClick={() => showActiveForm(form)}
-                                    className="px-6 py-1 bg-blue-600 rounded-lg text-white font-semibold text-lg"
+                                    className="px-6 py-1 rounded-lg font-semibold text-lg border-2 border-blue-400"
                                 >
                                     Open
                                 </button>
                                 <button 
                                     type="button"
                                     onClick={() => deleteForm(form.id)}
-                                    className="px-6 py-1 bg-red-400 rounded-lg text-white font-semibold text-lg"
+                                    className="px-6 py-1 rounded-lg font-semibold text-lg border-2 border-red-400"
                                 >
                                     Delete
                                 </button>
