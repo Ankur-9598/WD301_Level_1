@@ -16,7 +16,7 @@ export default function LabelledInput(props: { id: number, label: string, value:
                 />
                 <button
                     onClick={() => props.removeFieldCB(props.id)}
-                    className="px-6 py-2 bg-blue-600 rounded-lg text-white font-semibold text-lg border-2"
+                    className="px-6 py-2 bg-red-400 rounded-lg text-white font-semibold text-lg border-2"
                 >
                     Remove
                 </button>

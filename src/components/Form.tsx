@@ -92,11 +92,10 @@ export default function Form(props: {formData: formData, hideActiveFormCB: () =>
 
     return (
         <form action="p-2 divide-dotted divide-gray-500 divide-y-2">
-            <h3 className="text-xl font-bold">Active Form: {formData.title}</h3>
-            <div className="flex flex-row justify-between my-3 pb-2 border-b-2 border-b-stone-500">
+            <div className="flex flex-row justify-between my-3 pb-2">
                 <input 
                     type="text" 
-                    className="w-3/4 p-2 border-2 border-gray-200 rounded-lg"
+                    className="w-3/4 px-2 border-b-2 border-gray-400 focus:ring-0 focus:outline-0"
                     value={formData.title}
                     onChange={e => handleFormTitleChange(e.target.value)}
                     placeholder="Form Title"
@@ -114,7 +113,7 @@ export default function Form(props: {formData: formData, hideActiveFormCB: () =>
                     removeFieldCB={removeField}
                 />
             ))}
-            <div className="flex flex-row justify-between my-4 pt-2 border-t-2 border-t-stone-500">
+            <div className="flex flex-row justify-between py-4 mt-3 border-t-2 border-t-stone-500">
                 <input 
                     type="text" 
                     className="w-3/4 p-2 border-2 border-gray-200 rounded-lg"
