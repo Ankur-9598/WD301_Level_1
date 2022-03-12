@@ -1,58 +1,33 @@
+import { Link } from 'raviger';
 import React, { useEffect, useRef, useState } from 'react';
-import LabelledInput from './LabelledInput';
+import { getInitialFormData, saveFormData, updateAnswerFormOnNewFieldAdded } from '../functions/storage';
+import Label from './Label';
 
-interface formData {
-    id: number;
-    title: string;
-    formFields: formField[];
-}
-interface formField {
-    id: number,
-    label: string,
-    type: string,
-    value: string
-}
 
-export default function Form(props: {formData: formData, hideActiveFormCB: () => void, saveFormDataCB: (formData: formData) => void}) {
-    const [formData, setFormData] = useState(props.formData);
+
+export default function Form(props: {formId: number}) {
+    const [formData, setFormData] = useState(() => getInitialFormData(props.formId));
     const [newField, setNewField] = useState("");
     const titleRef = useRef<HTMLInputElement>(null);
-    
+
     useEffect(() => {
-        document.title = "Form - " + props.formData.title;
+        document.title = "Form - " + formData.title;
         titleRef.current?.focus();
         return () => {
             document.title = "React Typescript with Tailwindcss";
         }
-    }, []);
+    }, [formData.title]);
 
     useEffect(() => {
         let timeout = setTimeout(() => {
-            props.saveFormDataCB(formData);
+            saveFormData(formData);
+            updateAnswerFormOnNewFieldAdded(formData);
         }, 1000);
-        return () => clearTimeout(timeout);
+        return () => {
+            clearTimeout(timeout);
+        }
     }, [formData]);
 
-    // Reset the form fields...
-    const resetForm = () => { 
-        setFormData({
-            ...formData,
-            formFields: formData.formFields.map(field => {
-                return {...field, value: ""}
-            })
-        });
-    }
-
-    // Control the form field change value...
-    const handleFieldChange = (id: number, value: string) => {
-        setFormData({
-            ...formData,
-            formFields: formData.formFields.map(field => {
-                if(field.id === id) return {...field, value: value};
-                return field;
-            })
-        });
-    }
 
     const handleFormTitleChange = (value: string) => {
         setFormData({
@@ -89,6 +64,17 @@ export default function Form(props: {formData: formData, hideActiveFormCB: () =>
         });
     }
 
+    // Handle the label change...
+    const handleFieldLabelChange = (id: number, value: string) => {
+        setFormData({
+            ...formData,
+            formFields: formData.formFields.map(field => {
+                if(field.id === id) return {...field, label: value};
+                return field;
+            })
+        });
+    }
+
 
     return (
         <form action="p-2 divide-dotted divide-gray-500 divide-y-2">
@@ -103,14 +89,12 @@ export default function Form(props: {formData: formData, hideActiveFormCB: () =>
                 />
             </div>
             {formData.formFields.map(field => (
-                <LabelledInput 
+                <Label 
                     key={field.id}
                     id={field.id}
                     label={field.label}
-                    value={field.value}
-                    type={field.type}
-                    changeValueCB={handleFieldChange}
                     removeFieldCB={removeField}
+                    handleFieldLabelChangeCB={handleFieldLabelChange}
                 />
             ))}
             <div className="flex flex-row justify-between py-4 mt-3 border-t-2 border-t-stone-500">
@@ -124,29 +108,18 @@ export default function Form(props: {formData: formData, hideActiveFormCB: () =>
                 <button
                     type="button"
                     onClick={addField}
-                    className="px-6 py-2 bg-blue-600 rounded-lg text-white font-semibold text-lg border-2"
+                    className="px-6 py-[6px] border-blue-400 rounded-lg text-blue-400 font-semibold text-lg border-2"
                 >
                     Add field
                 </button>
             </div>
-            <button type='submit' className="w-3/12 px-6 py-2 bg-blue-600 rounded-lg text-white font-semibold text-lg mt-3 border-2">
-                Submit
-            </button>
 
-            <button 
-                type='button' 
-                onClick={resetForm}
-                className="w-3/12 ml-2 px-6 py-2 rounded-lg text-blue-600 border-blue-600 border-2 font-semibold text-lg mt-3"
+            <Link 
+                href="/" 
+                className="inline-block px-6 py-2 border-blue-500 rounded-lg text-blue-500 font-semibold text-lg mt-5 border-2 ml-2"
             >
-                Reset
-            </button>
-            <button 
-                onClick={props.hideActiveFormCB}
-                type='button' 
-                className="px-6 py-2 bg-blue-600 rounded-lg text-white font-semibold text-lg mt-3 border-2 ml-2"
-            >
-                Close Form
-            </button>
+                Close
+            </Link>
         </form>
     );
 }

@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { formField } from '../functions/types';
 
-export default function LabelledInput(props: { id: number, label: string, value: string, type: string, changeValueCB: (id: number, value: string) => void, removeFieldCB: (id: number) => void }) {
+interface LabelledInputProps {
+    field: formField;
+    answer: string;
+    changeValueCB: (id: number, value: string) => void;
+}
+
+export default function LabelledInput(props: LabelledInputProps) {
 
     return (
         <>
-            <label className="block text-gray-600 text-lg">
-                {props.label}
-            </label>
-            <div className="flex justify-between">
+            <div className="mb-1">
+                <label className="block text-gray-700 text-lg">
+                    {props.field.label}
+                </label>
                 <input 
-                    type={props.type} 
-                    className="w-3/4 p-2 border-2 border-gray-200 rounded-lg"
-                    value={props.value}
-                    onChange={e => props.changeValueCB(props.id, e.target.value)}
+                    type={props.field.type} 
+                    className="w-full p-2 border-2 border-gray-200 rounded-lg mt-1"
+                    value={props.answer}
+                    onChange={e => props.changeValueCB(props.field.id, e.target.value)}
                 />
-                <button
-                    onClick={() => props.removeFieldCB(props.id)}
-                    className="px-6 py-2 bg-red-400 rounded-lg text-white font-semibold text-lg border-2"
-                >
-                    Remove
-                </button>
             </div>
         </>
     )
