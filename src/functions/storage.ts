@@ -2,10 +2,9 @@ import { Answers, formData, formField } from "./types";
 
 // Initial form fields
 const initialFormFields: formField[] = [
-    { id: 1, label: "First Name", type: "text", value: ""},
-    { id: 2, label: "Last Name", type: "text", value: ""},
-    { id: 3, label: "Email", type: "email", value: ""},
-    { id: 5, label: "Date of Birth", type: "date", value: ""}
+    { kind: "text", id: 1, label: "Name", fieldType: "text", value: ""},
+    { kind: "text", id: 2, label: "Email", fieldType: "email", value: ""},
+    { kind: "dropdown", id: 3, label: "Branch", options: ["CSE", "ECE", "EE", "EIE", "Other"], value: ""}
 ]
 
 export const getLocalFormsData: () => formData[] = () => {

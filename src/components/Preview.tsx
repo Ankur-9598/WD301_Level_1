@@ -1,7 +1,13 @@
 import { Link } from 'raviger';
 import React, { useEffect, useState } from 'react';
 import { getInitialAnswerData, getInitialFormData, saveFormAnswers } from '../functions/storage';
+import { formField } from '../functions/types';
+import DropdownInput from './DropdownInput';
 import LabelledInput from './LabelledInput';
+import MultiselectInput from './MultiselectInput';
+import RadioInput from './RadioInput';
+import RatingInput from './RatingInput';
+import TextareaInput from './TextareaInput';
 
 
 
@@ -109,6 +115,56 @@ export default function Preview(props: {formId: number}) {
         return null;
     }
 
+    const renderFormField = (field: formField) => {
+        
+        return (
+            <React.Fragment key={field.id}>
+                <p className="text-right">Currently on {activeIndex + 1}/{formData.formFields.length}</p>
+                { field.kind === "text" 
+                    ?  
+                        <LabelledInput 
+                            field={field}
+                            changeValueCB={handleFieldChange}
+                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                        />
+                        
+                    : field.kind === "dropdown" ?
+                        <DropdownInput
+                            field={field}
+                            changeValueCB={handleFieldChange}
+                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                        />
+                    
+                    : field.kind === "radio" ?
+                        <RadioInput 
+                            field={field}
+                            changeValueCB={handleFieldChange}
+                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                        />
+
+                    : field.kind === "textarea" ?
+                        <TextareaInput 
+                            field={field}
+                            changeValueCB={handleFieldChange}
+                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                        />
+
+                    : field.kind === "multiselect" ?
+                        <MultiselectInput 
+                            field={field}
+                            changeValueCB={handleFieldChange}
+                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}    
+                        />
+                    : <RatingInput 
+                        field={field}
+                        changeValueCB={handleFieldChange}
+                        answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                    />
+                }
+            </React.Fragment>
+        ) 
+    }
+
     return (
         <>
             <div className="py-2 w-full flex flex-col items-center">
@@ -119,18 +175,10 @@ export default function Preview(props: {formId: number}) {
                 onSubmit={handleSubmit} 
                 className="max-w-[400px] w-full mx-auto rounded-lg shadow-lg bg-gray-50 p-5 my-3"
             >
-                {formData.formFields.map((field, index) => (activeIndex === index && (
-                    <React.Fragment key={field.id}>
-                        <p className="text-right">Currently on {activeIndex + 1}/{formData.formFields.length}</p>
-                        <LabelledInput 
-                            key={field.id}
-                            field={field}
-                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
-                            changeValueCB={handleFieldChange}
-                        />
-                    </React.Fragment>
-                )))}
-
+                {formData.formFields.map((field, index) => (
+                    activeIndex === index && renderFormField(field)
+                ))}
+                
                 <div className="flex justify-evenly mt-4">
                     {_previousButton()}
                     {_nextButton()}
