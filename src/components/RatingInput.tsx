@@ -18,7 +18,7 @@ export default function RatingInput(props: RatingInputProps) {
 
     return (
         <div className="inline-block">
-            <p className="text-xl text-gray-800 font-semibold">Rate your CSS</p>
+            <p className="text-xl text-gray-800 font-semibold">{ field.label }</p>
             {[...Array(field.level)].map((star, i) => (
                 <button 
                     key={i}

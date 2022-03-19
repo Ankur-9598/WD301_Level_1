@@ -16,7 +16,7 @@ export type DropdownField = basicField & {
     options: string[];
 }
 
-export type RadioField = basicField &{
+export type RadioField = basicField & {
     kind: "radio";
     options: string[];
 }
@@ -41,12 +41,26 @@ export interface formData {
     formFields: formField[];
 }
 
-export interface formAnswer {
+export interface FieldAnswer {
     id: number;
     answer: string;
 }
 
-export interface Answers {
+export interface FormAnswers {
     id: number;
-    answers: formAnswer[];
+    answers: FieldAnswer[];
+}
+
+export type InitialAddField = {
+    label: string,
+    kind: string,
+    inputType: fieldType,
+    options: string,
+    rating: number
+}
+
+export type PreviewForm = {
+    formData: formData,
+    formAnswers: FormAnswers,
+    activeIndex: number
 }

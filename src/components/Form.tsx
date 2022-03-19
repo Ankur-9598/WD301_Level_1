@@ -1,118 +1,53 @@
 import { Link } from 'raviger';
-import React, { useEffect, useRef, useState } from 'react';
-import { generateFormField, validFields } from '../functions/formFieldUtils';
+import React, { useEffect, useReducer, useRef } from 'react';
 import { getInitialFormData, saveFormData, updateAnswerFormOnNewFieldAdded } from '../functions/storage';
-import { fieldType, formField } from '../functions/types';
+import { fieldType, InitialAddField } from '../functions/types';
+import { NewFieldReducer } from '../reducers/FieldReducer';
+import { formReducer } from '../reducers/FormReducer';
 import Label from './Label';
 
-
+const initialField: InitialAddField = {
+    label: "",
+    kind: "",
+    inputType: "text",
+    options: "",
+    rating: 2
+}
 
 export default function Form(props: {formId: number}) {
-    const [formData, setFormData] = useState(() => getInitialFormData(props.formId));
-    const [options, setOptions] = useState("");
-    const [newField, setNewField] = useState("");
-    const [newFieldKind, setNewFieldKind] = useState("");
-    const [textInputType, setTextInputType] = useState("");
-    const [ratingLevel, setRatingLevel] = useState(2);
-    
+    const [fieldState, dispatchField] = useReducer(NewFieldReducer, initialField);
+    const [formDataState, dispatch] = useReducer(formReducer, null, () => getInitialFormData(props.formId));
     const titleRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        document.title = "Form - " + formData.title;
+        document.title = "Form - " + formDataState.title;
         titleRef.current?.focus();
         return () => {
             document.title = "React Typescript with Tailwindcss";
         }
-    }, [formData.title]);
+    }, [formDataState.title]);
 
     useEffect(() => {
         let timeout = setTimeout(() => {
-            saveFormData(formData);
-            updateAnswerFormOnNewFieldAdded(formData);
+            saveFormData(formDataState);
+            updateAnswerFormOnNewFieldAdded(formDataState);
         }, 1000);
         return () => {
             clearTimeout(timeout);
         }
-    }, [formData]);
-
-
-    const handleFormTitleChange = (value: string) => {
-        setFormData({
-            ...formData,
-            title: value
-        });
-    }
+    }, [formDataState]);
 
     // Add a new field in the active form...
     const addField = () => {
-        if(validFields(newField, newFieldKind, options, textInputType, ratingLevel)) {
-            let data = newField.split("_");
-            const label = data[0];
-            const fieldOptions = options.split(",");
-            const newFormField = generateFormField(newFieldKind, label, textInputType as fieldType, fieldOptions, ratingLevel);
-    
-            setFormData({
-                ...formData,
-                formFields: [
-                    ...formData.formFields,
-                    newFormField as formField
-                ]
-            });
-            setNewField("");
-            setOptions("");
-            setNewFieldKind("");
-            setTextInputType("");
-        }
-    }
-
-    // Remove a field from the active form...
-    const removeField = (id: number) => {
-        setFormData({
-            ...formData,
-            formFields: formData.formFields.filter(field => field.id !== id)
+        dispatch({
+            type: "add_field",
+            fieldData: fieldState,
+            callback: () => {
+                dispatchField({
+                    type: "clear_field"
+                });
+            }
         });
-    }
-
-    // Handle the label change...
-    const handleFieldLabelChange = (id: number, value: string) => {
-        setFormData({
-            ...formData,
-            formFields: formData.formFields.map(field => {
-                if(field.id === id) return {...field, label: value};
-                return field;
-            })
-        });
-    }
-
-    const handleFieldTypeChange = (id: number, newType: fieldType) => {
-        setFormData({
-            ...formData,
-            formFields: formData.formFields.map(field => {
-                if(field.id === id) return {...field, fieldType: newType};
-                return field;
-            })
-        })
-    }
-
-    const handleFieldOptionsChange = (id: number, fieldOptions: string) => {
-        const options = fieldOptions.split(",");
-        setFormData({
-            ...formData,
-            formFields: formData.formFields.map(field => {
-                if(field.id === id) return {...field, options: options};
-                return field;
-            })
-        })
-    }
-
-    const handleFieldRatingChange = (id: number, ratingLevel: number) => {
-        setFormData({
-            ...formData,
-            formFields: formData.formFields.map(field => {
-                if(field.id === id) return {...field, level: ratingLevel};
-                return field;
-            })
-        })
     }
 
 
@@ -122,36 +57,71 @@ export default function Form(props: {formId: number}) {
                 <input 
                     type="text" 
                     className="w-3/4 px-2 border-b-2 border-gray-400 focus:ring-0 focus:outline-0"
-                    value={formData.title}
-                    onChange={e => handleFormTitleChange(e.target.value)}
+                    value={formDataState.title}
+                    onChange={e => dispatch({type: "update_title", title: e.target.value})}
                     placeholder="Form Title"
                     ref={titleRef}
                 />
             </div>
             
-            {formData.formFields.map(field => (
+            {formDataState.formFields.map(field => (
                 <Label 
                     key={field.id}
                     field={field}
-                    removeFieldCB={removeField}
-                    handleFieldTypeChangeCB={handleFieldTypeChange}
-                    handleFieldLabelChangeCB={handleFieldLabelChange}
-                    handleFieldRatingChangeCB={handleFieldRatingChange}
-                    handleFieldOptionsChangeCB={handleFieldOptionsChange}
+                    removeFieldCB={(id: number) => {
+                        dispatch({
+                            type: "remove_field",
+                            id
+                        })
+                    }}
+                    handleFieldTypeChangeCB={(id: number, newType: fieldType) => {
+                        dispatch({
+                            type: "update_input_type",
+                            id,
+                            newType
+                        })
+                    }}
+                    handleFieldLabelChangeCB={(id: number, value: string) => {
+                        dispatch({
+                            type: "update_label",
+                            id,
+                            value
+                        })
+                    }}
+                    handleFieldRatingChangeCB={(id: number, ratingLevel: number) => {
+                        dispatch({
+                            type: "update_rating",
+                            id,
+                            ratingLevel
+                        })
+                    }}
+                    handleFieldOptionsChangeCB={(id: number, fieldOptions: string) => {
+                        dispatch({
+                            type: "update_options",
+                            id,
+                            options: fieldOptions
+                        })
+                    }}
                 />
             ))}
             <div className="flex flex-row flex-wrap justify-between gap-4 py-4 mt-3 border-y-2 border-y-stone-500">
                 <input 
                     type="text" 
                     className="p-2 border-2 border-gray-200 rounded-lg"
-                    value={newField}
-                    onChange={e => setNewField(e.target.value)}
+                    value={fieldState.label}
+                    onChange={e => dispatchField({
+                        type: "update_label", 
+                        value: e.target.value
+                    })}
                     placeholder="Field Label"
                 />
 
                 <select 
-                    value={newFieldKind}
-                    onChange={e => setNewFieldKind(e.target.value)}
+                    value={fieldState.kind}
+                    onChange={e => dispatchField({
+                        type: "update_field_kind",
+                        value: e.target.value
+                    })}
                     className='p-2 border-2 border-gray-200 rounded-lg'
                 >
                     <option disabled value="">Select input kind</option>
@@ -163,21 +133,27 @@ export default function Form(props: {formId: number}) {
                     <option value="rating">Rating</option>
                 </select>
 
-                {(newFieldKind === "dropdown" || newFieldKind === "radio" || newFieldKind === "multiselect") && (
+                {(fieldState.kind === "dropdown" || fieldState.kind === "radio" || fieldState.kind === "multiselect") && (
                     <input 
                         type="text" 
-                        value={options}
+                        value={fieldState.options}
                         autoFocus
-                        onChange={e => setOptions(e.target.value)}
+                        onChange={e => dispatchField({
+                            type: "update_options",
+                            options: e.target.value
+                        })}
                         placeholder="Options separated by ,(comma)"
                         className="p-2 border-2 border-gray-200 rounded-lg"
                     />   
                 )}
 
-                {(newFieldKind === "text") && (
+                {(fieldState.kind === "text") && (
                     <select 
-                        value={textInputType}
-                        onChange={e => setTextInputType(e.target.value)}
+                        value={fieldState.inputType}
+                        onChange={e => dispatchField({
+                            type: "update_input_type",
+                            value: e.target.value as fieldType
+                        })}
                         className='p-2 border-2 border-gray-200 rounded-lg'
                     >
                         <option disabled value="">Select text input type</option>
@@ -190,14 +166,17 @@ export default function Form(props: {formId: number}) {
                     </select> 
                 )}
 
-                {newFieldKind === "rating" && (
+                {fieldState.kind === "rating" && (
                     <input 
                         autoFocus
                         min={2}
                         max={10}
                         type="number" 
-                        value={ratingLevel}
-                        onChange={e => setRatingLevel(Number(e.target.value))}
+                        value={fieldState.rating}
+                        onChange={e => dispatchField({
+                            type: "update_rating",
+                            rating: Number(e.target.value)
+                        })}
                         className="p-2 border-2 border-gray-200 rounded-lg"
                     />
                 )}

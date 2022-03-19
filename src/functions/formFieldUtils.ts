@@ -66,7 +66,7 @@ export const validFields = (fieldLabel: string, inputKind: string, options: stri
         alert("Input kind cannot be empty.");
         return false;
     }
-    if(inputKind === "rating" && (ratingLevel < 2 || ratingLevel > 10)) {
+    if(inputKind === "rating" && (ratingLevel === undefined || ratingLevel < 2 || ratingLevel > 10)) {
         alert("Rating level must be between 2 and 10.");
         return false;
     }
@@ -74,7 +74,7 @@ export const validFields = (fieldLabel: string, inputKind: string, options: stri
         alert("Options cannot be empty.");
         return false;
     }
-    if (inputKind === "text" && textInputType === "") {
+    if (inputKind === "text" && (textInputType === undefined || textInputType === "")) {
         alert("Text input type cannot be empty.");
         return false;
     }

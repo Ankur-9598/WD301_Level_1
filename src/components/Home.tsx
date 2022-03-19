@@ -57,7 +57,7 @@ export default function Home() {
             
             <Link 
                 href={`/forms/${Number(new Date())}`} 
-                className="max-w-[300px] w-full mx-auto text-center px-6 py-[6px] rounded-lg text-blue-600 font-semibold text-lg mt-4 border-2 border-blue-600"
+                className="max-w-[300px] w-full mx-auto text-center px-6 py-[6px] rounded-lg text-blue-600 font-semibold text-lg mt-4 border-2 border-blue-600 hover:bg-blue-600 hover:text-white"
             >
                 + Create new form
             </Link>

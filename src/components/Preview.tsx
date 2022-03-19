@@ -1,7 +1,8 @@
 import { Link } from 'raviger';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { getInitialAnswerData, getInitialFormData, saveFormAnswers } from '../functions/storage';
-import { formField } from '../functions/types';
+import { formField, PreviewForm } from '../functions/types';
+import { previewReducer } from '../reducers/PreviewReducer';
 import DropdownInput from './DropdownInput';
 import LabelledInput from './LabelledInput';
 import MultiselectInput from './MultiselectInput';
@@ -9,12 +10,18 @@ import RadioInput from './RadioInput';
 import RatingInput from './RatingInput';
 import TextareaInput from './TextareaInput';
 
-
+const initializePreview = (formId: number): PreviewForm => {
+    const formData = getInitialFormData(formId);
+    const formAnswers = getInitialAnswerData(formData);
+    return {
+        formData,
+        formAnswers,
+        activeIndex: 0
+    }
+}
 
 export default function Preview(props: {formId: number}) {
-    const [formData] = useState(() => getInitialFormData(props.formId));
-    const [formAnswers, setFormAnswers] = useState(() => getInitialAnswerData(formData));
-    const [activeIndex, setActiveIndex] = useState(0);
+    const [previewState, dispatch] = useReducer(previewReducer, null, () => initializePreview(props.formId))
 
     useEffect(() => {
         document.title = "Form Preview";
@@ -25,39 +32,17 @@ export default function Preview(props: {formId: number}) {
 
     useEffect(() => {
         let timeout = setTimeout(() => {
-            saveFormAnswers(formAnswers);
+            saveFormAnswers(previewState.formAnswers);
         }, 1000);
 
         return () => {
             clearTimeout(timeout);
         }
-    }, [formAnswers]);
-
-    // Reset the answers...
-    const resetAnswers = () => { 
-        setFormAnswers({
-            ...formAnswers,
-            answers: formAnswers.answers.map(answer => {
-                return {...answer, answer: ""};
-            })
-        });
-    }
-
-    // Control the form field change value...
-    const handleFieldChange = (id: number, value: string) => {
-        setFormAnswers({
-            ...formAnswers,
-            answers: formAnswers.answers.map(answer => {
-                if (answer.id === id) {
-                    return {...answer, answer: value}
-                }
-                return answer;
-            })
-        });
-    }
+    }, [previewState.formAnswers]);
 
     const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const { formData, formAnswers } = previewState;
         let msg = "Hello User,\n";
         msg += "Your answers has been recorded.\n"
         msg += `Form title: ${formData.title}\n\n`;
@@ -70,26 +55,34 @@ export default function Preview(props: {formId: number}) {
 
     // Get the next active index
     const _nextField = () => {
-        let currentIndex = activeIndex;
-        let len = formData.formFields.length;
+        let currentIndex = previewState.activeIndex;
+        let len = previewState.formData.formFields.length;
         currentIndex = currentIndex >= len - 2 ? len - 1 : currentIndex + 1;
-        setActiveIndex(currentIndex);
+        // setActiveIndex(currentIndex);
+        dispatch({
+            type: "update_active_index",
+            curr_index: currentIndex
+        });
     }
 
     // Get the previous active index
     const _prevField = () => {
-        let currentIndex = activeIndex;
+        let currentIndex = previewState.activeIndex;
         currentIndex = currentIndex <= 1 ? 0 : currentIndex - 1;
-        setActiveIndex(currentIndex);
+        // setActiveIndex(currentIndex);
+        dispatch({
+            type: "update_active_index",
+            curr_index: currentIndex
+        });
     }
 
     // Get the next button
     const _nextButton = () => {
-        if(activeIndex < formData.formFields.length - 1) {
+        if(previewState.activeIndex < previewState.formData.formFields.length - 1) {
             return (
                 <button 
                     type="button" 
-                    className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-6 rounded focus:outline-none focus:shadow-outline" 
+                    className="text-sm bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-1 px-6 rounded focus:outline-none focus:shadow-outline" 
                     onClick={_nextField}
                 >
                     Next
@@ -101,11 +94,11 @@ export default function Preview(props: {formId: number}) {
 
     // Get the previous button
     const _previousButton = () => {
-        if(activeIndex > 0) {
+        if(previewState.activeIndex > 0) {
             return (
                 <button 
                     type="button" 
-                    className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-4 rounded focus:outline-none focus:shadow-outline" 
+                    className="text-sm bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-1 px-4 rounded focus:outline-none focus:shadow-outline" 
                     onClick={_prevField}
                 >
                     Previous
@@ -115,50 +108,92 @@ export default function Preview(props: {formId: number}) {
         return null;
     }
 
+    // Get the answer of a field
+    const getAnswer = (fieldId: number): string => {
+        return previewState.formAnswers.answers.filter(answer => answer.id === fieldId)[0].answer;
+    }
+
+    // Render form field based on the input kind
     const renderFormField = (field: formField) => {
         
         return (
             <React.Fragment key={field.id}>
-                <p className="text-right">Currently on {activeIndex + 1}/{formData.formFields.length}</p>
+                <p className="text-right">Currently on {previewState.activeIndex + 1}/{previewState.formData.formFields.length}</p>
                 { field.kind === "text" 
                     ?  
                         <LabelledInput 
                             field={field}
-                            changeValueCB={handleFieldChange}
-                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                            changeValueCB={(id: number, value: string) => {
+                                dispatch({
+                                    type: "update_answer",
+                                    id,
+                                    value
+                                })
+                            }}
+                            answer={getAnswer(field.id)}
                         />
                         
                     : field.kind === "dropdown" ?
                         <DropdownInput
                             field={field}
-                            changeValueCB={handleFieldChange}
-                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                            changeValueCB={(id: number, value: string) => {
+                                dispatch({
+                                    type: "update_answer",
+                                    id,
+                                    value
+                                })
+                            }}
+                            answer={getAnswer(field.id)}
                         />
                     
                     : field.kind === "radio" ?
                         <RadioInput 
                             field={field}
-                            changeValueCB={handleFieldChange}
-                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                            changeValueCB={(id: number, value: string) => {
+                                dispatch({
+                                    type: "update_answer",
+                                    id,
+                                    value
+                                })
+                            }}
+                            answer={getAnswer(field.id)}
                         />
 
                     : field.kind === "textarea" ?
                         <TextareaInput 
                             field={field}
-                            changeValueCB={handleFieldChange}
-                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                            changeValueCB={(id: number, value: string) => {
+                                dispatch({
+                                    type: "update_answer",
+                                    id,
+                                    value
+                                })
+                            }}
+                            answer={getAnswer(field.id)}
                         />
 
                     : field.kind === "multiselect" ?
                         <MultiselectInput 
                             field={field}
-                            changeValueCB={handleFieldChange}
-                            answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}    
+                            changeValueCB={(id: number, value: string) => {
+                                dispatch({
+                                    type: "update_answer",
+                                    id,
+                                    value
+                                })
+                            }}
+                            answer={getAnswer(field.id)}    
                         />
                     : <RatingInput 
                         field={field}
-                        changeValueCB={handleFieldChange}
-                        answer={formAnswers.answers.filter(answer => answer.id === field.id)[0].answer}
+                        changeValueCB={(id: number, value: string) => {
+                            dispatch({
+                                type: "update_answer",
+                                id,
+                                value
+                            })
+                        }}
+                        answer={getAnswer(field.id)}
                     />
                 }
             </React.Fragment>
@@ -168,15 +203,15 @@ export default function Preview(props: {formId: number}) {
     return (
         <>
             <div className="py-2 w-full flex flex-col items-center">
-                <h2 className="text-xl font-semibold">{ formData.title }</h2>
-                <p>This form contains {formData.formFields.length } questions</p>
+                <h2 className="text-xl font-semibold">{ previewState.formData.title }</h2>
+                <p>This form contains {previewState.formData.formFields.length } questions</p>
             </div>
             <form
                 onSubmit={handleSubmit} 
-                className="max-w-[400px] w-full mx-auto rounded-lg shadow-lg bg-gray-50 p-5 my-3"
+                className="max-w-[400px] w-full mx-auto rounded-lg shadow-lg bg-gray-100 p-5 my-3"
             >
-                {formData.formFields.map((field, index) => (
-                    activeIndex === index && renderFormField(field)
+                {previewState.formData.formFields.map((field, index) => (
+                    previewState.activeIndex === index && renderFormField(field)
                 ))}
                 
                 <div className="flex justify-evenly mt-4">
@@ -184,7 +219,7 @@ export default function Preview(props: {formId: number}) {
                     {_nextButton()}
                 </div>
 
-                {(activeIndex === formData.formFields.length -1) && 
+                {(previewState.activeIndex === previewState.formData.formFields.length -1) && 
                     <button type="submit" className="px-6 py-1 bg-gray-400 rounded-lg font-semibold text-lg mt-8 hover:shadow-lg">
                         Submit
                     </button>
@@ -200,7 +235,11 @@ export default function Preview(props: {formId: number}) {
                 </Link>
                 <button 
                     type='button' 
-                    onClick={resetAnswers}
+                    onClick={() => {
+                        dispatch({
+                            type: "reset_answer"
+                        })
+                    }}
                     className="px-6 py-1 rounded-lg border-blue-400 text-blue-400 border-2 font-semibold ml-2 text-lg shadow-sm hover:bg-blue-400 hover:text-white"
                 >
                     Reset Answers

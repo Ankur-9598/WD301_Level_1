@@ -1,4 +1,4 @@
-import { Answers, formData, formField } from "./types";
+import { FormAnswers, formData, formField } from "./types";
 
 // Initial form fields
 const initialFormFields: formField[] = [
@@ -67,7 +67,7 @@ export const updateAnswerFormOnNewFieldAdded = (formData: formData) => {
     }
 }
 
-export const getInitialAnswerData: (formData: formData) => Answers = (formData) => {
+export const getInitialAnswerData: (formData: formData) => FormAnswers = (formData) => {
         const localAnswers = getLocalAnswersData();
         const answer = localAnswers.find(answer => answer.id === formData.id);
         if(answer) {
@@ -81,7 +81,7 @@ export const getInitialAnswerData: (formData: formData) => Answers = (formData) 
         return newFormAnswer;
 }
 
-export const getLocalAnswersData: () => Answers[] = () => {
+export const getLocalAnswersData: () => FormAnswers[] = () => {
     const answerJSON = localStorage.getItem("answersData");
     if(answerJSON) {
         return JSON.parse(answerJSON);
@@ -89,11 +89,11 @@ export const getLocalAnswersData: () => Answers[] = () => {
     return [];
 }
 
-export const saveLocalAnswers = (localAnswers: Answers[]) => {
+export const saveLocalAnswers = (localAnswers: FormAnswers[]) => {
     localStorage.setItem("answersData", JSON.stringify(localAnswers));
 }
 
-export const saveFormAnswers = (answers: Answers) => {
+export const saveFormAnswers = (answers: FormAnswers) => {
     const localAnswers = getLocalAnswersData();
     const updatedAnswers = localAnswers.map(localAnswers => {
         if(answers.id === localAnswers.id) {
