@@ -1,8 +1,8 @@
 import React from 'react';
-import { TextField } from '../functions/types';
+import { Field } from '../functions/types/formTypes';
 
 interface LabelledInputProps {
-    field: TextField;
+    field: Field;
     answer: string;
     changeValueCB: (id: number, value: string) => void;
 }
@@ -16,10 +16,11 @@ export default function LabelledInput(props: LabelledInputProps) {
             </label>
             <input 
                 autoFocus
-                type={props.field.fieldType} 
-                className="w-full p-2 border-2 border-gray-200 rounded-lg mt-1"
+                type="text"
                 value={props.answer}
-                onChange={e => props.changeValueCB(props.field.id, e.target.value)}
+                className="w-full p-2 border-2 border-gray-200 rounded-lg mt-1"
+                placeholder='Your answer'
+                onChange={e => props.changeValueCB(props.field.id!, e.target.value)}
             />
         </div> 
     )

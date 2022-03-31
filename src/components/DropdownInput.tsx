@@ -1,15 +1,16 @@
-import React from 'react';
-import { DropdownField } from '../functions/types';
+import React, { useState } from 'react';
+import { Field } from '../functions/types/formTypes';
 
 
 interface DropdownInputProps {
-    field: DropdownField;
+    field: Field;
     answer: string;
     changeValueCB: (id: number, value: string) => void;
 }
 
 export default function DropdownInput(props: DropdownInputProps) {
     const { field, answer, changeValueCB } = props;
+    const [options] = useState(field.options!.split(','));
     
     return (
         <div className="mb-1">
@@ -20,12 +21,13 @@ export default function DropdownInput(props: DropdownInputProps) {
                 value={answer}
                 onChange={e => {
                     e.preventDefault();
-                    changeValueCB(field.id, e.target.value);
+                    changeValueCB(field.id!, e.target.value);
                 }}
+                title='Select an option'
                 className="w-full p-2 border-2 border-gray-200 rounded-lg mt-1 focus:ring-0"
             >
                 <option value="">Select an option</option>
-                {field.options.map((option, index) => (
+                {options.map((option, index) => (
                     <option 
                         key={index} 
                         value={option}

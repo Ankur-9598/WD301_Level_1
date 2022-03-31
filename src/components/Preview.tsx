@@ -1,84 +1,110 @@
-import { Link } from 'raviger';
-import React, { useEffect, useReducer } from 'react';
-import { getInitialAnswerData, getInitialFormData, saveFormAnswers } from '../functions/storage';
-import { formField, PreviewForm } from '../functions/types';
-import { previewReducer } from '../reducers/PreviewReducer';
-import DropdownInput from './DropdownInput';
-import LabelledInput from './LabelledInput';
-import MultiselectInput from './MultiselectInput';
+import { Link, navigate } from 'raviger';
+import React, { useEffect, useState } from 'react';
+
+import { getFormData, getFormFields, me, updateField } from '../functions/ApiCalls';
+
+import { Pagination } from '../functions/types/commonTypes';
+import { Field, FormData } from '../functions/types/formTypes';
+
 import RadioInput from './RadioInput';
 import RatingInput from './RatingInput';
 import TextareaInput from './TextareaInput';
+import DropdownInput from './DropdownInput';
+import LabelledInput from './LabelledInput';
+import MultiselectInput from './MultiselectInput';
+import Loading from './common/Loading';
+import { User } from '../functions/types/User';
 
-const initializePreview = (formId: number): PreviewForm => {
-    const formData = getInitialFormData(formId);
-    const formAnswers = getInitialAnswerData(formData);
-    return {
-        formData,
-        formAnswers,
-        activeIndex: 0
-    }
-}
+
 
 export default function Preview(props: {formId: number}) {
-    const [previewState, dispatch] = useReducer(previewReducer, null, () => initializePreview(props.formId))
+    const [loading, setLoading] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [previewForm, setPreviewForm] = useState<FormData>()
+    const [previewFields, setPreviewFields] = useState<Field[]>([]);
 
     useEffect(() => {
-        document.title = "Form Preview";
-        return () => {
-            document.title = "Home";
+        const authenticateUser = async () => {
+            const user: User = await me();
+            if (user.username.length < 1) {
+                alert("You must be logged in to fill this form");
+                navigate("/login");
+            }
+            document.title = "Form Preview";
         }
+        authenticateUser();
     }, []);
 
     useEffect(() => {
-        let timeout = setTimeout(() => {
-            saveFormAnswers(previewState.formAnswers);
-        }, 1000);
-
-        return () => {
-            clearTimeout(timeout);
+        const fetchFormData = async () => {
+            try {
+                setLoading(true);
+                const formData: FormData = await getFormData(props.formId);
+                setPreviewForm(formData);
+                const formFieldsData: Pagination<Field> = await getFormFields(props.formId); 
+                setPreviewFields(formFieldsData.results);
+            } catch (error) {
+                console.log(error);
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [previewState.formAnswers]);
+        fetchFormData();
+    }, [props.formId]);
+
+    const updateAnswer = (fieldId: number, value: string) => {
+        setPreviewFields(previewFields.map(field => {
+            if(field.id === fieldId) {
+                return {
+                    ...field,
+                    value: value
+                }
+            }
+            return field;
+        }));
+    }
+
+    const resetFields = () => {
+        setPreviewFields(previewFields.map(field => {
+            return {
+                ...field,
+                value: ""
+            }
+        }));
+    }
 
     const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const { formData, formAnswers } = previewState;
-        let msg = "Hello User,\n";
-        msg += "Your answers has been recorded.\n"
-        msg += `Form title: ${formData.title}\n\n`;
-        formAnswers.answers.forEach(answer => {
-            msg += `${formData.formFields.find(field => field.id === answer.id)?.label}: ${answer.answer}\n`;
-        });
-        msg += "\nThank you for your time.";
-        alert(msg);
+        let msg = "";
+        try {
+            previewFields.forEach(async field => {
+                msg += `${field.label}: ${field.value}\n`;
+                await updateField(props.formId, field.id!, field);
+            });
+            alert("Form submitted successfully!\n" + msg);
+        } catch(error) {
+            console.log(error);
+        }
     }
 
     // Get the next active index
     const _nextField = () => {
-        let currentIndex = previewState.activeIndex;
-        let len = previewState.formData.formFields.length;
+        let currentIndex = activeIndex;
+        let len = previewFields.length;
         currentIndex = currentIndex >= len - 2 ? len - 1 : currentIndex + 1;
-        // setActiveIndex(currentIndex);
-        dispatch({
-            type: "update_active_index",
-            curr_index: currentIndex
-        });
+        setActiveIndex(currentIndex);
     }
 
     // Get the previous active index
     const _prevField = () => {
-        let currentIndex = previewState.activeIndex;
+        let currentIndex = activeIndex;
         currentIndex = currentIndex <= 1 ? 0 : currentIndex - 1;
-        // setActiveIndex(currentIndex);
-        dispatch({
-            type: "update_active_index",
-            curr_index: currentIndex
-        });
+        setActiveIndex(currentIndex);
     }
 
     // Get the next button
     const _nextButton = () => {
-        if(previewState.activeIndex < previewState.formData.formFields.length - 1) {
+        if(activeIndex < previewFields.length - 1) {
             return (
                 <button 
                     type="button" 
@@ -94,7 +120,7 @@ export default function Preview(props: {formId: number}) {
 
     // Get the previous button
     const _previousButton = () => {
-        if(previewState.activeIndex > 0) {
+        if(activeIndex > 0) {
             return (
                 <button 
                     type="button" 
@@ -108,110 +134,75 @@ export default function Preview(props: {formId: number}) {
         return null;
     }
 
-    // Get the answer of a field
-    const getAnswer = (fieldId: number): string => {
-        return previewState.formAnswers.answers.filter(answer => answer.id === fieldId)[0].answer;
-    }
-
     // Render form field based on the input kind
-    const renderFormField = (field: formField) => {
+    const renderFormField = (field: Field) => {
         
         return (
             <React.Fragment key={field.id}>
-                <p className="text-right">Currently on {previewState.activeIndex + 1}/{previewState.formData.formFields.length}</p>
-                { field.kind === "text" 
-                    ?  
-                        <LabelledInput 
-                            field={field}
-                            changeValueCB={(id: number, value: string) => {
-                                dispatch({
-                                    type: "update_answer",
-                                    id,
-                                    value
-                                })
-                            }}
-                            answer={getAnswer(field.id)}
-                        />
-                        
-                    : field.kind === "dropdown" ?
-                        <DropdownInput
-                            field={field}
-                            changeValueCB={(id: number, value: string) => {
-                                dispatch({
-                                    type: "update_answer",
-                                    id,
-                                    value
-                                })
-                            }}
-                            answer={getAnswer(field.id)}
-                        />
-                    
-                    : field.kind === "radio" ?
-                        <RadioInput 
-                            field={field}
-                            changeValueCB={(id: number, value: string) => {
-                                dispatch({
-                                    type: "update_answer",
-                                    id,
-                                    value
-                                })
-                            }}
-                            answer={getAnswer(field.id)}
-                        />
-
-                    : field.kind === "textarea" ?
-                        <TextareaInput 
-                            field={field}
-                            changeValueCB={(id: number, value: string) => {
-                                dispatch({
-                                    type: "update_answer",
-                                    id,
-                                    value
-                                })
-                            }}
-                            answer={getAnswer(field.id)}
-                        />
-
-                    : field.kind === "multiselect" ?
-                        <MultiselectInput 
-                            field={field}
-                            changeValueCB={(id: number, value: string) => {
-                                dispatch({
-                                    type: "update_answer",
-                                    id,
-                                    value
-                                })
-                            }}
-                            answer={getAnswer(field.id)}    
-                        />
-                    : <RatingInput 
+                <p className="text-right">Currently on {activeIndex + 1}/{previewFields.length}</p>
+                { (field.kind === "TEXT" && !field.meta) && ( 
+                    <LabelledInput 
                         field={field}
-                        changeValueCB={(id: number, value: string) => {
-                            dispatch({
-                                type: "update_answer",
-                                id,
-                                value
-                            })
-                        }}
-                        answer={getAnswer(field.id)}
+                        changeValueCB={updateAnswer}
+                        answer={field.value || ""}
                     />
-                }
+                )}
+                        
+                { field.kind === "DROPDOWN" && (
+                    <DropdownInput
+                        field={field}
+                        changeValueCB={updateAnswer}
+                        answer={field.value || ""}
+                    />
+                )}
+                    
+                { field.kind === "RADIO" && (
+                    <RadioInput 
+                        field={field}
+                        changeValueCB={updateAnswer}
+                        answer={field.value || ""}
+                    />
+                )}
+
+                { field.meta === "multiselect" && (
+                    <MultiselectInput 
+                        field={field}
+                        changeValueCB={updateAnswer}
+                    />
+                )}
+
+                { field.meta === "textarea" && (
+                    <TextareaInput 
+                        field={field}
+                        answer={field.value || ""}
+                        changeValueCB={updateAnswer}
+                    />
+                )}
+
+                { field.meta === "rating" && (
+                    <RatingInput 
+                        field={field}
+                        answer={field.value || ""}
+                        changeValueCB={updateAnswer}
+                    />
+                )}
             </React.Fragment>
         ) 
     }
 
     return (
-        <>
+        <div>
+            {loading && <Loading />}
             <div className="py-2 w-full flex flex-col items-center">
-                <h2 className="text-xl font-semibold">{ previewState.formData.title }</h2>
-                <p>This form contains {previewState.formData.formFields.length } questions</p>
+                <h2 className="text-xl font-semibold">{ previewForm?.title }</h2>
+                <p>This form contains { previewFields.length } questions</p>
             </div>
             <form
                 onSubmit={handleSubmit} 
                 className="max-w-[400px] w-full mx-auto rounded-lg shadow-lg bg-gray-100 p-5 my-3"
             >
-                {previewState.formData.formFields.map((field, index) => (
-                    previewState.activeIndex === index && renderFormField(field)
+                {previewFields.map((field, index) => (
+                    activeIndex === index && renderFormField(field)
                 ))}
                 
                 <div className="flex justify-evenly mt-4">
@@ -219,7 +210,7 @@ export default function Preview(props: {formId: number}) {
                     {_nextButton()}
                 </div>
 
-                {(previewState.activeIndex === previewState.formData.formFields.length -1) && 
+                {(activeIndex === previewFields.length -1) && 
                     <button type="submit" className="px-6 py-1 bg-gray-400 rounded-lg font-semibold text-lg mt-8 hover:shadow-lg">
                         Submit
                     </button>
@@ -235,16 +226,12 @@ export default function Preview(props: {formId: number}) {
                 </Link>
                 <button 
                     type='button' 
-                    onClick={() => {
-                        dispatch({
-                            type: "reset_answer"
-                        })
-                    }}
+                    onClick={resetFields}
                     className="px-6 py-1 rounded-lg border-blue-400 text-blue-400 border-2 font-semibold ml-2 text-lg shadow-sm hover:bg-blue-400 hover:text-white"
                 >
                     Reset Answers
                 </button>
             </div>
-        </>
+        </div>
     );
 }

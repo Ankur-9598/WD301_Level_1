@@ -1,8 +1,8 @@
 import React from 'react';
-import { TextAreaField } from '../functions/types';
+import { Field } from '../functions/types/formTypes';
 
 interface TextareaInputProps {
-    field: TextAreaField;
+    field: Field;
     answer: string;
     changeValueCB: (id: number, value: string) => void;
 }
@@ -16,9 +16,10 @@ export default function TextareaInput(props: TextareaInputProps) {
                 {props.field.label}
             </label>
             <textarea 
-                value={answer}
                 autoFocus
-                onChange={e => changeValueCB(field.id, e.target.value)}
+                value={answer}
+                title="Enter your answer"
+                onChange={e => changeValueCB(field.id!, e.target.value)}
                 className="w-full p-2 border-2 border-gray-200 rounded-lg mt-1"    
             ></textarea>
         </div> 

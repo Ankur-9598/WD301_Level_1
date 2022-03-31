@@ -1,201 +1,138 @@
-import { Link } from 'raviger';
-import React, { useEffect, useReducer, useRef } from 'react';
-import { getInitialFormData, saveFormData, updateAnswerFormOnNewFieldAdded } from '../functions/storage';
-import { fieldType, InitialAddField } from '../functions/types';
-import { NewFieldReducer } from '../reducers/FieldReducer';
-import { formReducer } from '../reducers/FormReducer';
-import Label from './Label';
+import { Link, navigate } from 'raviger';
+import React, { useEffect, useRef, useState } from 'react';
 
-const initialField: InitialAddField = {
-    label: "",
-    kind: "",
-    inputType: "text",
-    options: "",
-    rating: 2
-}
+import { Pagination } from '../functions/types/commonTypes';
+import { Field, FormData } from '../functions/types/formTypes';
+import { getFormData, getFormFields, me, removeField, updateFormData } from '../functions/ApiCalls';
+
+import Label from './Label';
+import AddFields from './AddFields';
+import Modal from './common/Modal';
+import Loading from './common/Loading';
+import { User } from '../functions/types/User';
+
+
 
 export default function Form(props: {formId: number}) {
-    const [fieldState, dispatchField] = useReducer(NewFieldReducer, initialField);
-    const [formDataState, dispatch] = useReducer(formReducer, null, () => getInitialFormData(props.formId));
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [form, setForm] = useState<FormData>({
+        title: ""
+    });
+    const [formFields, setFormFields] = useState<Field[]>([]);
     const titleRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        document.title = "Form - " + formDataState.title;
-        titleRef.current?.focus();
-        return () => {
-            document.title = "React Typescript with Tailwindcss";
+        const authenticateUser = async () => {
+            const user: User = await me();
+            if (user.username.length < 1) {
+                alert("You must be logged in to edit a form");
+                navigate("/login");
+            }
         }
-    }, [formDataState.title]);
+        authenticateUser();
+    }, []);
 
     useEffect(() => {
-        let timeout = setTimeout(() => {
-            saveFormData(formDataState);
-            updateAnswerFormOnNewFieldAdded(formDataState);
+        const fetchFormData = async () => {
+            try {
+                setLoading(true);
+                const formData: FormData = await getFormData(props.formId);
+                const formFieldsData: Pagination<Field> = await getFormFields(props.formId); 
+                setForm(formData);
+                setFormFields(formFieldsData.results);
+            } catch (error) {
+                console.log(error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchFormData();
+    }, [props.formId]);
+
+    useEffect(() => {
+        document.title = "Form - " + form?.title;
+        titleRef.current?.focus();
+
+        let timeout = setTimeout(async() => { 
+            if(!form.id) return;   
+            if(form.title.length < 1 || form.title.length > 100) {
+                alert("Title must be between 1 and 100 characters");
+                return;
+            }
+            const data = await updateFormData(props.formId, form);
+            setForm(data);
         }, 1000);
+        
         return () => {
             clearTimeout(timeout);
+            document.title = "React Typescript with Tailwindcss";
         }
-    }, [formDataState]);
+    }, [form, form.title, form.id, props.formId]);
 
-    // Add a new field in the active form...
-    const addField = () => {
-        dispatch({
-            type: "add_field",
-            fieldData: fieldState,
-            callback: () => {
-                dispatchField({
-                    type: "clear_field"
-                });
-            }
-        });
+    // Remove a field from the active form...
+    const handleRemoveField = async (fieldId: number) => {
+        try {
+            await removeField(props.formId, fieldId);
+            setFormFields(formFields.filter(field => field.id !== fieldId));
+        } catch (error) {
+            console.log(error);
+        }
     }
+
+    const closeModal = () => setOpen(false);
 
 
     return (
-        <form action="p-2 divide-dotted divide-gray-500 divide-y-2">
+        <div className="p-2">
+            {loading && <Loading />}
             <div className="flex flex-row justify-between my-3 pb-2">
                 <input 
                     type="text" 
                     className="w-3/4 px-2 border-b-2 border-gray-400 focus:ring-0 focus:outline-0"
-                    value={formDataState.title}
-                    onChange={e => dispatch({type: "update_title", title: e.target.value})}
+                    value={form.title}
+                    onChange={e => setForm({...form, title: e.target.value})}
                     placeholder="Form Title"
                     ref={titleRef}
                 />
             </div>
-            
-            {formDataState.formFields.map(field => (
-                <Label 
-                    key={field.id}
-                    field={field}
-                    removeFieldCB={(id: number) => {
-                        dispatch({
-                            type: "remove_field",
-                            id
-                        })
-                    }}
-                    handleFieldTypeChangeCB={(id: number, newType: fieldType) => {
-                        dispatch({
-                            type: "update_input_type",
-                            id,
-                            newType
-                        })
-                    }}
-                    handleFieldLabelChangeCB={(id: number, value: string) => {
-                        dispatch({
-                            type: "update_label",
-                            id,
-                            value
-                        })
-                    }}
-                    handleFieldRatingChangeCB={(id: number, ratingLevel: number) => {
-                        dispatch({
-                            type: "update_rating",
-                            id,
-                            ratingLevel
-                        })
-                    }}
-                    handleFieldOptionsChangeCB={(id: number, fieldOptions: string) => {
-                        dispatch({
-                            type: "update_options",
-                            id,
-                            options: fieldOptions
-                        })
-                    }}
-                />
-            ))}
-            <div className="flex flex-row flex-wrap justify-between gap-4 py-4 mt-3 border-y-2 border-y-stone-500">
-                <input 
-                    type="text" 
-                    className="p-2 border-2 border-gray-200 rounded-lg"
-                    value={fieldState.label}
-                    onChange={e => dispatchField({
-                        type: "update_label", 
-                        value: e.target.value
-                    })}
-                    placeholder="Field Label"
-                />
-
-                <select 
-                    value={fieldState.kind}
-                    onChange={e => dispatchField({
-                        type: "update_field_kind",
-                        value: e.target.value
-                    })}
-                    className='p-2 border-2 border-gray-200 rounded-lg'
-                >
-                    <option disabled value="">Select input kind</option>
-                    <option value="text">Text</option>
-                    <option value="dropdown">Dropdown</option>
-                    <option value="radio">Radio</option>
-                    <option value="textarea">Textarea</option>
-                    <option value="multiselect">Multiselect</option>
-                    <option value="rating">Rating</option>
-                </select>
-
-                {(fieldState.kind === "dropdown" || fieldState.kind === "radio" || fieldState.kind === "multiselect") && (
-                    <input 
-                        type="text" 
-                        value={fieldState.options}
-                        autoFocus
-                        onChange={e => dispatchField({
-                            type: "update_options",
-                            options: e.target.value
-                        })}
-                        placeholder="Options separated by ,(comma)"
-                        className="p-2 border-2 border-gray-200 rounded-lg"
-                    />   
-                )}
-
-                {(fieldState.kind === "text") && (
-                    <select 
-                        value={fieldState.inputType}
-                        onChange={e => dispatchField({
-                            type: "update_input_type",
-                            value: e.target.value as fieldType
-                        })}
-                        className='p-2 border-2 border-gray-200 rounded-lg'
-                    >
-                        <option disabled value="">Select text input type</option>
-                        <option value="email">Email</option>
-                        <option value="date">Date</option>
-                        <option value="number">Number</option>
-                        <option value="tel">Telephone</option>
-                        <option value="text">Text</option>
-                        <option value="time">Time</option>
-                    </select> 
-                )}
-
-                {fieldState.kind === "rating" && (
-                    <input 
-                        autoFocus
-                        min={2}
-                        max={10}
-                        type="number" 
-                        value={fieldState.rating}
-                        onChange={e => dispatchField({
-                            type: "update_rating",
-                            rating: Number(e.target.value)
-                        })}
-                        className="p-2 border-2 border-gray-200 rounded-lg"
+            <div className="divide-y divide-gray-400 divide-dotted">
+                {formFields.map(field => (
+                    <Label 
+                        key={field.id}
+                        field={field}
+                        formId={props.formId}
+                        removeFieldCB={handleRemoveField}
                     />
-                )}
-
-                <button
-                    type="button"
-                    onClick={addField}
-                    className="px-6 py-[6px] border-blue-400 rounded-lg text-blue-400 font-semibold text-lg border-2"
-                >
-                    Add field
-                </button>
+                ))}
             </div>
 
-            <Link 
-                href="/" 
-                className="inline-block px-6 py-2 border-blue-500 rounded-lg text-blue-500 font-semibold text-lg mt-5 border-2 ml-2"
-            >
-                Close
-            </Link>
-        </form>
+
+            <Modal open={open} onCloseCB={closeModal}>
+                <AddFields 
+                    formId={props.formId}
+                    closeModalCB={closeModal}
+                    setLoadingCB={(value: boolean) => setLoading(value)}
+                    setFormFieldsCB={(data: Field) => setFormFields([...formFields, data])}
+                />
+            </Modal>
+            
+            <div className="flex flex-row gap-x-4 items-center">
+                <button
+                    type="button"
+                    onClick={() => setOpen(true)}
+                    className="px-6 h-11 mt-6 border-blue-400 rounded-lg text-blue-400 font-semibold text-lg border-2"
+                >
+                    Add new field
+                </button>
+                <Link 
+                    href="/" 
+                    className="flex items-center justify-center px-6 h-11 w-36  border-red-500 rounded-lg text-red-500 font-semibold text-lg mt-5 border-2 ml-2"
+                >
+                    Close
+                </Link>
+
+            </div>
+        </div>
     );
 }

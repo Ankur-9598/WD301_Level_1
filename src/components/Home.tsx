@@ -1,32 +1,70 @@
-import { Link, useQueryParams } from 'raviger';
+import { useQueryParams } from 'raviger';
 import React, { useEffect, useState } from 'react';
-import { getLocalFormsData, saveLocalForms } from '../functions/storage';
-import FormCard from './FormCard';
 
+import { listForms } from '../functions/ApiCalls';
+import { FormData } from '../functions/types/formTypes';
+import { Pagination, PaginationData } from '../functions/types/commonTypes';
+
+import Modal from './common/Modal';
+import Loading from './common/Loading';
+import FormCard from './FormCard';
+import CreateForm from './CreateForm';
+import PaginationContainer from './common/PaginationContainer';
+
+
+const fetchFormsData = async (setFormsData: React.Dispatch<React.SetStateAction<PaginationData<FormData>>>, setLoading?: React.Dispatch<React.SetStateAction<boolean>>, offset?: number, limit?: number) => {
+    try {
+        if(setLoading) setLoading(true);
+        const offsetValue: number = offset ? offset : 0;
+        const limitValue: number = limit ? limit : 5;
+        const data: Pagination<FormData> = await listForms({offset: offsetValue, limit: limitValue});
+        
+        setFormsData({
+            results: data.results,
+            count: data.count,
+            prev: data.prev,
+            next: data.next,
+            limit: limitValue,
+            activePage: offsetValue ? offsetValue / limitValue + 1 : 1
+        });
+    } catch (error) {
+        console.error(error);
+    } finally {
+        if(setLoading) setLoading(false);
+    }
+}
 
 export default function Home() {
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [formsData, setFormsData] = useState<PaginationData<FormData>>({
+        count: 0,
+        prev: null,
+        next: null,
+        results: [],
+        limit: 5,
+        activePage: 0
+    })
     const [{search}, setQueryParams] = useQueryParams();
     const [searchQuery, setSearchQuery] = useState(search || "");
-    const [localForms, setLocalForms] = useState(() => getLocalFormsData());
 
     useEffect(() => {
         document.title = "Form Lists";
+        fetchFormsData(setFormsData, setLoading);
         return () => {
             document.title = "React Typescript with Tailwindcss";
         }
     }, []);
 
 
-    const deleteForm = (id: number) => {
-        const updatedForms = localForms.filter(form => form.id !== id);
-        saveLocalForms(updatedForms);
-        setLocalForms(updatedForms);
+    const onPageChange = (page: number) => {
+        const offset = (page - 1) * formsData.limit;
+        fetchFormsData(setFormsData, setLoading, offset, formsData.limit);
     }
-
-
 
     return (
         <div className="flex flex-col">
+            {loading && <Loading />}
             <form
                 className="my-4"
                 onSubmit={(e) => {
@@ -46,21 +84,35 @@ export default function Home() {
 
             { (search !== undefined && search !== "") && <h2 className="text-xl font-bold mb-4">Search results for "{search}"</h2> }
 
-            {localForms.filter(form => form.title.toLowerCase().includes(search?.toLowerCase() || ""))
-            .map(form => (
-                <FormCard
-                    key={form.id}
-                    form={form}
-                    deleteFormCB={deleteForm}
-                />
-            ))}
-            
-            <Link 
-                href={`/forms/${Number(new Date())}`} 
+            <ul>
+                {formsData.results.filter(form => form.title.toLowerCase().includes(search?.toLowerCase() || ""))
+                .map(form => (
+                    <FormCard
+                        key={form.id}
+                        form={form}
+                    />
+                ))}
+            </ul>
+
+            <PaginationContainer
+                count={formsData.count}
+                limit={formsData.limit}
+                activePage={formsData.activePage}
+                onPageChangeCB={onPageChange}
+            />
+
+            <button 
+                type='button'
+                onClick={_ => setOpen(true)}
                 className="max-w-[300px] w-full mx-auto text-center px-6 py-[6px] rounded-lg text-blue-600 font-semibold text-lg mt-4 border-2 border-blue-600 hover:bg-blue-600 hover:text-white"
             >
                 + Create new form
-            </Link>
+            </button>
+
+            <Modal open={open} onCloseCB={() => setOpen(false)}>
+                <CreateForm />
+            </Modal>
+            
         </div>
     );
 }

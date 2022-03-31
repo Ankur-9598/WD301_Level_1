@@ -1,8 +1,9 @@
 import { ActiveLink } from 'raviger';
 import React from 'react';
+import { User } from '../functions/types/User';
 import logo from '../logo.svg';
 
-export default function Header() {
+export default function Header(props: {user: User}) {
     return (
         <div className="flex gap-2 items-center">
             <img 
@@ -13,17 +14,35 @@ export default function Header() {
             />
             <div className="flex gap-2 items-center">
                 {[
-                    { page: "Home", url: "/"},
-                    { page: "About", url: "/about"}
+                    {page: "Home", url: "/"},
+                    {page: "About", url: "/about"},
+                    ...(props.user?.username?.length > 0
+                        ? [{ page: "Logout", onClick: () => {
+                            localStorage.removeItem("token");
+                            window.location.href = "/login";
+                        }}]
+                        : [{ page: "Login", url: "/login"}]
+                    )
                 ].map(link => (
-                    <ActiveLink
-                        key={link.url}
-                        href={link.url}
-                        className="text-gray-700 p-2 m-2 uppercase font-semibold"
-                        exactActiveClass="text-blue-700 border-b-2 border-blue-700"
-                    >
-                        {link.page}
-                    </ActiveLink>
+                    link.url ? (
+                        <ActiveLink
+                            key={link.url}
+                            href={link.url}
+                            className="text-gray-700 p-2 m-2 uppercase font-semibold"
+                            exactActiveClass="text-blue-700 border-b-2 border-blue-700"
+                        >
+                            {link.page}
+                        </ActiveLink>
+                    ) : (
+                        <button
+                            type='button'
+                            key={link.page}
+                            onClick={link.onClick}
+                            className="text-gray-700 p-2 m-2 uppercase font-semibold"
+                        >
+                            {link.page}
+                        </button>
+                    )
                 ))}
             </div>
         </div>

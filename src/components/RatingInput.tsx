@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
-import { RatingField } from '../functions/types';
+import { Field } from '../functions/types/formTypes';
 
 interface RatingInputProps {
-    field: RatingField;
+    field: Field;
     answer: string;
     changeValueCB: (id: number, value: string) => void;
 }
 export default function RatingInput(props: RatingInputProps) {
     const { field, answer, changeValueCB } = props;
-    const [rating, setRating] = useState(Number(answer) | 0);
+    
     const [hover, setHover] = useState(0);
+    const [rating, setRating] = useState(Number(answer) | 0);
 
     const handleRatingChange = (newRating: number) => {
         setRating(newRating);
-        changeValueCB(field.id, String(newRating));
+        changeValueCB(field.id!, String(newRating));
     }
 
     return (
         <div className="inline-block">
             <p className="text-xl text-gray-800 font-semibold">{ field.label }</p>
-            {[...Array(field.level)].map((star, i) => (
+            {[...Array(Number(field.options))].map((star, i) => (
                 <button 
                     key={i}
                     type="button" 

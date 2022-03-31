@@ -1,91 +1,71 @@
-import React, { useState } from 'react';
-import { fieldType, formField } from '../functions/types';
+import React, { useEffect, useState } from 'react';
+import { updateField } from '../functions/ApiCalls';
+import { Field } from '../functions/types/formTypes';
 
 interface LabelPropsInterface {
-    field: formField;
+    field: Field;
+    formId: number;
     removeFieldCB: (id: number) => void;
-    handleFieldLabelChangeCB: (id: number, value: string) => void;
-    handleFieldTypeChangeCB: (id: number, newType: fieldType) => void;
-    handleFieldRatingChangeCB: (id: number, ratingLevel: number) => void;
-    handleFieldOptionsChangeCB: (id: number, fieldOptions: string) => void;
-}
-
-const getOptions = (field: formField) => {
-    if("options" in field) return field.options.join(",");
-    return "";
 }
 
 
 export default function Label(props: LabelPropsInterface) {
-    const { field, removeFieldCB, handleFieldTypeChangeCB, handleFieldLabelChangeCB, handleFieldRatingChangeCB, handleFieldOptionsChangeCB } = props;
-    const [fieldOptions, setFieldOptions] = useState(() => getOptions(field));
+    const { field, formId, removeFieldCB } = props;
+    const [fieldData, setFieldData] = useState<Field>(field);
     
-    const handleFieldOptionsChange = (value: string) => {
-        setFieldOptions(value);
-        handleFieldOptionsChangeCB(field.id, fieldOptions);
-    }
+    useEffect(() => {
+        let timeout = setTimeout(async () => {
+            await updateField(formId, fieldData.id!, fieldData);
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, [fieldData, formId]);
 
     return (
         <div className="flex justify-between items-end gap-3 mb-2">
             <div className="flex flex-col">
                 <label className="block text-gray-600 text-lg">
-                    {field.label}
+                    {fieldData.label}
                 </label>
                 <input 
                     type="text" 
+                    value={fieldData.label}
+                    placeholder='Label'
                     className="flex-1 p-2 border-2 border-gray-200 rounded-lg"
-                    value={field.label}
-                    onChange={e => handleFieldLabelChangeCB(field.id, e.target.value)}
+                    onChange={e => setFieldData({...fieldData, label: e.target.value})}
                 />
             </div>
-                {field.kind === "text" && (
-                    <div className="">
-                        <label className="block text-gray-600 text-lg">Text input type</label>
-                        <select 
-                            value={field.fieldType}
-                            onChange={e => handleFieldTypeChangeCB(field.id, e.target.value as fieldType)}
-                            className='p-2 border-2 border-gray-200 rounded-lg'
-                        >
-                            <option disabled value="">Select text input type</option>
-                            <option value="email">Email</option>
-                            <option value="date">Date</option>
-                            <option value="number">Number</option>
-                            <option value="tel">Telephone</option>
-                            <option value="text">Text</option>
-                            <option value="time">Time</option>
-                        </select>
-                    </div>
-                )}
-                {(field.kind === "dropdown" || field.kind === "radio" || field.kind === "multiselect") && (
+                {(fieldData.kind === "RADIO" || fieldData.kind === "DROPDOWN" || fieldData.meta === "multiselect") && (
                     <div className="flex flex-col">
                         <label className="block text-gray-600 text-lg">Options</label>
                         <input 
                             type="text" 
                             name="options"
                             title="Options separated by comma(,)"
-                            value={fieldOptions}
+                            value={fieldData.options}
                             placeholder="Options separated by ,(comma)"
-                            onChange={e => handleFieldOptionsChange(e.target.value)}
+                            onChange={e => setFieldData({...fieldData, options: e.target.value})}
                             className="flex-1 p-2 border-2 border-gray-200 rounded-lg"
                         />
                     </div>
                 )}
 
-                {field.kind === "rating" && (
+                {field.meta === "rating" && (
                     <div className="flex flex-col">
-                        <label className="block text-gray-600 text-lg">Rating stars limit</label>
+                        <label className="block text-gray-600 text-lg" htmlFor='rating'>Rating stars</label>
                         <input 
                             type="number" 
-                            value={field.level}
-                            onChange={e => handleFieldRatingChangeCB(field.id, Number(e.target.value))}
+                            id="rating"
+                            title="Rating stars"
+                            value={fieldData.options}
                             className="flex-1 p-2 border-2 border-gray-200 rounded-lg"
+                            onChange={e => setFieldData({...fieldData, options: e.target.value})}
                         />
                     </div>
                 )}
                 <div className="flex gap-2 ml-2">
                     <button
                         type="button"
-                        onClick={() => removeFieldCB(field.id)}
+                        onClick={() => removeFieldCB(fieldData.id!)}
                         className="px-6 py-[6px] border-red-400 rounded-lg text-red-400 font-semibold text-lg border-2 mb-1"
                     >
                         Remove
