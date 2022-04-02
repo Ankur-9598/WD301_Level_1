@@ -19,7 +19,7 @@ export default function LabelledInput(props: LabelledInputProps) {
                 type="text"
                 value={props.answer}
                 className="w-full p-2 border-2 border-gray-200 rounded-lg mt-1"
-                placeholder='Your answer'
+                placeholder={` Your ${props.field.label.toLowerCase()}`}
                 onChange={e => props.changeValueCB(props.field.id!, e.target.value)}
             />
         </div> 

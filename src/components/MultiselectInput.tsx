@@ -34,10 +34,10 @@ export default function MultiselectInput(props: MultiselectInputProps) {
                 {field.label}
             </label>
             <div className="bg-white rounded-lg px-4 py-2 mt-2">
-                <div className="flex items-center justify-between" onClick={_=> setOpenOptions(!openOptions)}>
+                <button type="button" className="w-full flex items-center justify-between" onClick={_=> setOpenOptions(!openOptions)}>
                     <span>Select Hobbies</span>
                     <span className="font-bold text-lg">{ openOptions ? "-" : "+" }</span>
-                </div>
+                </button>
                 { openOptions && (
                     <div className="h-24 overflow-y-scroll">
                         {field.options!.split(",").map((option, index) => (

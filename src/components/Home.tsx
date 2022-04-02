@@ -62,6 +62,8 @@ export default function Home() {
         fetchFormsData(setFormsData, setLoading, offset, formsData.limit);
     }
 
+    const closeModal = () => setOpen(false);
+
     return (
         <div className="flex flex-col">
             {loading && <Loading />}
@@ -109,8 +111,8 @@ export default function Home() {
                 + Create new form
             </button>
 
-            <Modal open={open} onCloseCB={() => setOpen(false)}>
-                <CreateForm />
+            <Modal open={open} onCloseCB={closeModal}>
+                <CreateForm closeModalCB={closeModal} />
             </Modal>
             
         </div>

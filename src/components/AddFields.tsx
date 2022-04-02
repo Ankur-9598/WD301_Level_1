@@ -93,6 +93,7 @@ export default function AddFields( props: AddFieldProps ) {
                     <option value="textarea">Textarea</option>
                     <option value="multiselect">Multiselect</option>
                     <option value="rating">Rating</option>
+                    <option value="code">Code</option>
                 </select>
                 {errors.kind && <span className="text-red-500">{errors.kind}</span>}
             </div>
@@ -126,6 +127,27 @@ export default function AddFields( props: AddFieldProps ) {
                         className="p-2 border-2 border-gray-200 rounded-lg"
                         onChange={e => setNewField({...newField, options: e.target.value})}
                     />
+                    {errors.options && <span className="text-red-500">{errors.options}</span>}
+                </div>
+            )}
+
+            { newField.meta === "code" && (
+                <div className="flex flex-col py-2">
+                    <label htmlFor="code">Language</label>
+                    <select 
+                        id="code"
+                        title='Code Language'
+                        value={newField.options}
+                        onChange={e => setNewField({...newField, options: e.target.value})}
+                        className='p-2 border-2 border-gray-200 rounded-lg'
+                    >
+                        <option disabled value="">Select code language</option>
+                        <option value="c">C</option>
+                        <option value="cpp">C++</option>
+                        <option value="javascript">Javascript</option>
+                        <option value="java">Java</option>
+                        <option value="python">Python</option>
+                    </select>
                     {errors.options && <span className="text-red-500">{errors.options}</span>}
                 </div>
             )}

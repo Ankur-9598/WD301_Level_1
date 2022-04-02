@@ -23,6 +23,9 @@ export default function Form(props: {formId: number}) {
     const titleRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        document.title = "Form Preview";
+        titleRef.current?.focus();
+
         const authenticateUser = async () => {
             const user: User = await me();
             if (user.username.length < 1) {
@@ -51,9 +54,6 @@ export default function Form(props: {formId: number}) {
     }, [props.formId]);
 
     useEffect(() => {
-        document.title = "Form - " + form?.title;
-        titleRef.current?.focus();
-
         let timeout = setTimeout(async() => { 
             if(!form.id) return;   
             if(form.title.length < 1 || form.title.length > 100) {

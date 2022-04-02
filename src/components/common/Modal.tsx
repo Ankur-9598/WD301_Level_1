@@ -1,5 +1,5 @@
 /* This example requires Tailwind CSS v2.0+ */
-import React, { Fragment, ReactNode, useRef } from 'react'
+import React, { Fragment, ReactNode } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
 interface ModelProps {
