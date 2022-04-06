@@ -1,5 +1,5 @@
 import React from 'react';
-import { Field } from '../functions/types/formTypes';
+import { Field } from '../../functions/types/formTypes';
 
 interface TextareaInputProps {
     field: Field;

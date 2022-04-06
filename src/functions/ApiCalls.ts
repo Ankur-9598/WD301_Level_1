@@ -63,6 +63,10 @@ export const updateFormData = (formId: number, formData: FormData) => {
     return request(`forms/${formId}/`, 'PUT', formData);
 }
 
+export const updateFormTitle = (formId: number, title: string) => {
+    return request(`forms/${formId}/`, 'PATCH', {title});
+}
+
 export const getFormFields = (formId: number) => {
     return request(`forms/${formId}/fields/`, 'GET', {});
 }

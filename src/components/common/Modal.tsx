@@ -1,5 +1,4 @@
-/* This example requires Tailwind CSS v2.0+ */
-import React, { Fragment, ReactNode, useRef } from 'react'
+import React, { Fragment, ReactNode } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
 interface ModelProps {
@@ -27,7 +26,6 @@ export default function Modal(props: ModelProps) {
                         <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
                     </Transition.Child>
 
-                    {/* This element is to trick the browser into centering the modal contents. */}
                     <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                         &#8203;
                     </span>

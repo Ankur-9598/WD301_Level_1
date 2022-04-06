@@ -1,25 +1,36 @@
 import { Link, navigate } from 'raviger';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useReducer, useRef, useState } from 'react';
 
 import { Pagination } from '../functions/types/commonTypes';
 import { Field, FormData } from '../functions/types/formTypes';
-import { getFormData, getFormFields, me, removeField, updateFormData } from '../functions/ApiCalls';
+import { getFormData, getFormFields, me, removeField, updateFormTitle } from '../functions/ApiCalls';
 
 import Label from './Label';
 import AddFields from './AddFields';
 import Modal from './common/Modal';
 import Loading from './common/Loading';
 import { User } from '../functions/types/User';
+import { formReducer, FormReducerState } from '../reducers/FormReducer';
 
+const initalData: FormReducerState = {
+    open: false,
+    loading: false,
+    formFields: []
+}
 
+const _updateFormTitle = async (formId: number, title: string) => {
+    try {
+        await updateFormTitle(formId, title);
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 export default function Form(props: {formId: number}) {
-    const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [data, dispatch] = useReducer(formReducer, initalData);
     const [form, setForm] = useState<FormData>({
         title: ""
     });
-    const [formFields, setFormFields] = useState<Field[]>([]);
     const titleRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -36,56 +47,76 @@ export default function Form(props: {formId: number}) {
     useEffect(() => {
         const fetchFormData = async () => {
             try {
-                setLoading(true);
+                dispatch({
+                    type: "update_loading",
+                    payload: true
+                });
+
                 const formData: FormData = await getFormData(props.formId);
-                const formFieldsData: Pagination<Field> = await getFormFields(props.formId); 
                 setForm(formData);
-                setFormFields(formFieldsData.results);
+
+                const formFieldsData: Pagination<Field> = await getFormFields(props.formId); 
+                dispatch({
+                    type: "set_form_fields",
+                    payload: formFieldsData.results
+                });
             } catch (error) {
                 console.log(error);
             } finally {
-                setLoading(false);
+                dispatch({
+                    type: "update_loading",
+                    payload: false
+                });
             }
         }
         fetchFormData();
     }, [props.formId]);
 
     useEffect(() => {
-        document.title = "Form - " + form?.title;
+        document.title = `Form - ${form.title}`;
         titleRef.current?.focus();
-
-        let timeout = setTimeout(async() => { 
-            if(!form.id) return;   
+    
+        const handleFormTitleChange = async () => {
+            if(!form.id) return;
             if(form.title.length < 1 || form.title.length > 100) {
                 alert("Title must be between 1 and 100 characters");
                 return;
             }
-            const data = await updateFormData(props.formId, form);
-            setForm(data);
-        }, 1000);
-        
-        return () => {
-            clearTimeout(timeout);
-            document.title = "React Typescript with Tailwindcss";
+            _updateFormTitle(props.formId, form.title); 
         }
-    }, [form, form.title, form.id, props.formId]);
+        let debouncer = setTimeout(() => {
+            handleFormTitleChange();
+        }, 1000);
+
+        return () => {
+            clearTimeout(debouncer);
+        }
+
+    }, [form.id, form.title, props.formId]);
 
     // Remove a field from the active form...
     const handleRemoveField = async (fieldId: number) => {
         try {
             await removeField(props.formId, fieldId);
-            setFormFields(formFields.filter(field => field.id !== fieldId));
+            // setFormFields(formFields.filter(field => field.id !== fieldId));
+            dispatch({
+                type: "remove_field",
+                fieldId: fieldId
+            });
         } catch (error) {
             console.log(error);
         }
     }
 
-    const closeModal = () => setOpen(false);
+    const closeModal = () => dispatch({
+        type: "update_modal",
+        payload: false
+    });
 
 
     return (
         <div className="p-2">
-            {loading && <Loading />}
+            {data.loading && <Loading />}
             <div className="flex flex-row justify-between my-3 pb-2">
                 <input 
                     type="text" 
@@ -97,7 +128,7 @@ export default function Form(props: {formId: number}) {
                 />
             </div>
             <div className="divide-y divide-gray-400 divide-dotted">
-                {formFields.map(field => (
+                {data.formFields.map(field => (
                     <Label 
                         key={field.id}
                         field={field}
@@ -108,19 +139,28 @@ export default function Form(props: {formId: number}) {
             </div>
 
 
-            <Modal open={open} onCloseCB={closeModal}>
+            <Modal open={data.open} onCloseCB={closeModal}>
                 <AddFields 
                     formId={props.formId}
                     closeModalCB={closeModal}
-                    setLoadingCB={(value: boolean) => setLoading(value)}
-                    setFormFieldsCB={(data: Field) => setFormFields([...formFields, data])}
+                    setLoadingCB={(value: boolean) => dispatch({
+                        type: "update_loading",
+                        payload: value
+                    })}
+                    setFormFieldsCB={(data: Field) => dispatch({
+                        type: "add_form_field",
+                        payload: data
+                    })}
                 />
             </Modal>
             
             <div className="flex flex-row gap-x-4 items-center">
                 <button
                     type="button"
-                    onClick={() => setOpen(true)}
+                    onClick={() => dispatch({
+                        type: "update_modal",
+                        payload: true
+                    })}
                     className="px-6 h-11 mt-6 border-blue-400 rounded-lg text-blue-400 font-semibold text-lg border-2"
                 >
                     Add new field

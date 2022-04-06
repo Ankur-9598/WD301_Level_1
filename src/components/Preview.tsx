@@ -6,12 +6,13 @@ import { getFormData, getFormFields, me, updateField } from '../functions/ApiCal
 import { Pagination } from '../functions/types/commonTypes';
 import { Field, FormData } from '../functions/types/formTypes';
 
-import RadioInput from './RadioInput';
-import RatingInput from './RatingInput';
-import TextareaInput from './TextareaInput';
-import DropdownInput from './DropdownInput';
-import LabelledInput from './LabelledInput';
-import MultiselectInput from './MultiselectInput';
+import RadioInput from './inputs/RadioInput';
+import RatingInput from './inputs/RatingInput';
+import TextareaInput from './inputs/TextareaInput';
+import DropdownInput from './inputs/DropdownInput';
+import LabelledInput from './inputs/LabelledInput';
+import MultiselectInput from './inputs/MultiselectInput';
+
 import Loading from './common/Loading';
 import { User } from '../functions/types/User';
 

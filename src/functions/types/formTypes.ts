@@ -9,24 +9,10 @@ export type FormData = {
     modified_date?: Date
 }
 
-type MultiSelectField = {
-    kind: "multiselect",
-}
-
-type RatingField = {
-    kind: "rating",
-}
-
-type TextAreaField = {
-    kind: "textarea",
-}
-
-export type MetaField = MultiSelectField | RatingField | TextAreaField;
-
 export type Field = {
     id?: number,
     label: string,
-    kind: "TEXT" | "DROPDOWN" | "RADIO",
+    kind: "TEXT" | "DROPDOWN" | "RADIO" | "NULL",
     options?: string,
     value?: string,
     meta?: string

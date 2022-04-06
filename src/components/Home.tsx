@@ -5,10 +5,11 @@ import { listForms } from '../functions/ApiCalls';
 import { FormData } from '../functions/types/formTypes';
 import { Pagination, PaginationData } from '../functions/types/commonTypes';
 
-import Modal from './common/Modal';
-import Loading from './common/Loading';
 import FormCard from './FormCard';
 import CreateForm from './CreateForm';
+
+import Modal from './common/Modal';
+import Loading from './common/Loading';
 import PaginationContainer from './common/PaginationContainer';
 
 

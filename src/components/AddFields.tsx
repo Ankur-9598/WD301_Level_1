@@ -24,15 +24,17 @@ export default function AddFields( props: AddFieldProps ) {
 
     const handleInputKindChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const kind = event.target.value;
-        if(kind === "RADIO" || kind === "DROPDOWN") {
+        if(kind === "RADIO" || kind === "DROPDOWN" || kind === "TEXT") {
             setNewField({
                 ...newField,
-                kind: kind
+                kind: kind,
+                meta: "",
             });
         } else {
             setNewField({
                 ...newField,
-                meta: kind
+                meta: kind,
+                kind: "NULL",
             });
         }
         
@@ -46,7 +48,12 @@ export default function AddFields( props: AddFieldProps ) {
         if(Object.keys(validationErros).length === 0) {
             try {
                 props.setLoadingCB(true);
-                const data: Field = await addField(props.formId, newField);
+                
+                let newFieldData = newField;
+                if(newField.kind === "NULL") {
+                    newFieldData.kind = "TEXT";
+                }
+                const data: Field = await addField(props.formId, newFieldData);
                 props.setFormFieldsCB(data);
                 setNewField({
                     label: "",

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Field } from '../functions/types/formTypes';
+import { Field } from '../../functions/types/formTypes';
 
 
 interface DropdownInputProps {

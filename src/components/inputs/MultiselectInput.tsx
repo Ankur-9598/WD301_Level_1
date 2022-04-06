@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Field } from '../functions/types/formTypes';
+import { Field } from '../../functions/types/formTypes';
 
 interface MultiselectInputProps {
     field: Field;
