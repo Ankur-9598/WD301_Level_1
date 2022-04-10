@@ -1,8 +1,11 @@
 import React from 'react';
+import { Error } from '../../functions/types/commonTypes';
 import { Field } from '../../functions/types/formTypes';
+import { Answer } from '../../functions/types/submissionTypes';
 
 interface LabelledInputProps {
     field: Field;
+    error: string;
     answer: string;
     changeValueCB: (id: number, value: string) => void;
 }
@@ -22,6 +25,7 @@ export default function LabelledInput(props: LabelledInputProps) {
                 placeholder='Your answer'
                 onChange={e => props.changeValueCB(props.field.id!, e.target.value)}
             />
+            {props.error && <span className="text-sm text-red-600">{props.error}</span>}
         </div> 
     )
 }

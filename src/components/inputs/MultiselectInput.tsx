@@ -1,28 +1,33 @@
 import React, { useEffect, useState } from 'react';
+import { Error } from '../../functions/types/commonTypes';
 
 import { Field } from '../../functions/types/formTypes';
+import { Answer } from '../../functions/types/submissionTypes';
 
 interface MultiselectInputProps {
     field: Field;
+    answer: string;
+    error: string;
     changeValueCB: (id: number, value: string) => void;
 }
 
 export default function MultiselectInput(props: MultiselectInputProps) {
-    const { field, changeValueCB } = props;
+    const { field, answer, changeValueCB } = props;
     const [openOptions, setOpenOptions] = useState(false);
-    const [multiAnswers, setMultiAnswers] = useState<string[]>(field.value?.split(",") || []);
+    const [multiAnswers, setMultiAnswers] = useState<string[]>(answer.split(",") || []);
 
     useEffect(() => {
-        const setAnswerOptions = () => setMultiAnswers(field.value?.split(",") || []);
-        setAnswerOptions();
-    }, [field.value]);
+        let timeout = setTimeout(() => {
+            changeValueCB(field.id!, multiAnswers.join(","));
+        }, 1000);
+
+        return () => clearTimeout(timeout);
+    }, [multiAnswers]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>, value: string) => {
         if(e.target.checked) {
-            changeValueCB(field.id!, multiAnswers.concat(value).join(','));
             setMultiAnswers([...multiAnswers, value]);
         } else {
-            changeValueCB(field.id!, multiAnswers.filter(answer => answer !== value).join(','));
             setMultiAnswers(multiAnswers.filter(answer => answer !== value));
         }
     }
@@ -59,6 +64,7 @@ export default function MultiselectInput(props: MultiselectInputProps) {
                     answer.length > 0 && <span key={index} className="bg-white rounded-lg px-3 py-1 text-sm">{answer}</span>
                 ))}
             </div>
+            {props.error && <span className="text-sm text-red-600">{props.error}</span>}
         </div>
     );
 }

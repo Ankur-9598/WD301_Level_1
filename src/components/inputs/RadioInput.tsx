@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { Error } from '../../functions/types/commonTypes';
 import { Field } from '../../functions/types/formTypes';
+import { Answer } from '../../functions/types/submissionTypes';
 
 
 interface RadioInputProps {
     field: Field;
     answer: string;
+    error: string;
     changeValueCB: (id: number, value: string) => void;
 }
 
@@ -33,6 +36,7 @@ export default function RadioInput(props: RadioInputProps) {
                     </div>
                 ))}
             </div>
+            {props.error && <span className="text-sm text-red-600">{props.error}</span>}
         </div>
     );
 }

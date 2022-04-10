@@ -4,7 +4,8 @@ import About from "../components/About";
 import Form from "../components/Form";
 import Home from "../components/Home";
 import Login from "../components/Login";
-import Preview from "../components/Preview";
+import Preview from "../components/preview/Preview";
+import PreviewHome from "../components/preview/Home";
 import { User } from "../functions/types/User";
 
 const routes = {
@@ -12,7 +13,8 @@ const routes = {
     "/login": () => <Login />,
     "/about": () => <About />,
     "/forms/:id": ({id}: {id: string}) => <Form formId={Number(id)} />,
-    "/preview/:id": ({id}: {id: string}) => <Preview formId={Number(id)} />,
+    "/preview/:id": ({id}: {id: string}) => <PreviewHome formId={Number(id)} />,
+    "/preview/:id/submission": ({id}: {id: string}) => <Preview formId={Number(id)} />,
 }
 
 export default function AppRouter(props: {user: User}) {

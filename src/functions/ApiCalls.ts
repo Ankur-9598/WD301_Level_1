@@ -1,5 +1,6 @@
 import { PaginationParams } from "./types/commonTypes";
 import { Field, FormData } from "./types/formTypes";
+import { Submission } from "./types/submissionTypes";
 
 const API_BASE_URL = "https://tsapi.coronasafe.live/api/";
 
@@ -67,7 +68,7 @@ export const updateFormTitle = (formId: number, title: string) => {
     return request(`forms/${formId}/`, 'PATCH', {title});
 }
 
-export const getFormFields = (formId: number) => {
+export const getAllFormFields = (formId: number) => {
     return request(`forms/${formId}/fields/`, 'GET', {});
 }
 
@@ -81,4 +82,20 @@ export const updateField = (formId: number, fieldId: number, field: Field) => {
 
 export const removeField = (formId: number, fieldId: number) => {
     return request(`forms/${formId}/fields/${fieldId}/`, 'DELETE', {});
+}
+
+export const getAllSubmissions = (formId: number) => {
+    return request(`forms/${formId}/submission/`, 'GET', {});
+}
+
+export const submitAnswers = (formId: number, formAnswer: Submission) => {
+    return request(`forms/${formId}/submission/`, 'POST', formAnswer);
+}
+
+export const getSubmission = (formId: number, submissionId: number) => {
+    return request(`forms/${formId}/submission/${submissionId}/`, 'GET', {});
+}
+
+export const getFormField = (formId: number, fieldId: number) => {
+    return request(`forms/${formId}/fields/${fieldId}/`, 'GET', {});
 }

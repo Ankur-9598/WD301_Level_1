@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { Error } from '../../functions/types/commonTypes';
 import { Field } from '../../functions/types/formTypes';
+import { Answer } from '../../functions/types/submissionTypes';
 
 
 interface DropdownInputProps {
     field: Field;
+    error: string;
     answer: string;
     changeValueCB: (id: number, value: string) => void;
 }
@@ -36,6 +39,7 @@ export default function DropdownInput(props: DropdownInputProps) {
                     </option>
                 ))}
             </select>
+            {props.error && <span className="text-sm text-red-600">{props.error}</span>}
         </div>
     );
 }

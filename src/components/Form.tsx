@@ -3,7 +3,7 @@ import React, { useEffect, useReducer, useRef, useState } from 'react';
 
 import { Pagination } from '../functions/types/commonTypes';
 import { Field, FormData } from '../functions/types/formTypes';
-import { getFormData, getFormFields, me, removeField, updateFormTitle } from '../functions/ApiCalls';
+import { getFormData, getAllFormFields, me, removeField, updateFormTitle } from '../functions/ApiCalls';
 
 import Label from './Label';
 import AddFields from './AddFields';
@@ -12,7 +12,7 @@ import Loading from './common/Loading';
 import { User } from '../functions/types/User';
 import { formReducer, FormReducerState } from '../reducers/FormReducer';
 
-const initalData: FormReducerState = {
+const initialData: FormReducerState = {
     open: false,
     loading: false,
     formFields: []
@@ -27,7 +27,7 @@ const _updateFormTitle = async (formId: number, title: string) => {
 }
 
 export default function Form(props: {formId: number}) {
-    const [data, dispatch] = useReducer(formReducer, initalData);
+    const [data, dispatch] = useReducer(formReducer, initialData);
     const [form, setForm] = useState<FormData>({
         title: ""
     });
@@ -55,7 +55,7 @@ export default function Form(props: {formId: number}) {
                 const formData: FormData = await getFormData(props.formId);
                 setForm(formData);
 
-                const formFieldsData: Pagination<Field> = await getFormFields(props.formId); 
+                const formFieldsData: Pagination<Field> = await getAllFormFields(props.formId); 
                 dispatch({
                     type: "set_form_fields",
                     payload: formFieldsData.results
@@ -98,7 +98,6 @@ export default function Form(props: {formId: number}) {
     const handleRemoveField = async (fieldId: number) => {
         try {
             await removeField(props.formId, fieldId);
-            // setFormFields(formFields.filter(field => field.id !== fieldId));
             dispatch({
                 type: "remove_field",
                 fieldId: fieldId

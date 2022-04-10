@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { Error } from '../../functions/types/commonTypes';
 import { Field } from '../../functions/types/formTypes';
+import { Answer } from '../../functions/types/submissionTypes';
 
 interface RatingInputProps {
     field: Field;
     answer: string;
+    error: string;
     changeValueCB: (id: number, value: string) => void;
 }
 export default function RatingInput(props: RatingInputProps) {
@@ -24,7 +27,7 @@ export default function RatingInput(props: RatingInputProps) {
                 <button 
                     key={i}
                     type="button" 
-                    className={`p-1 bg-transparent border-0 outline-0 cursor-pointer ${i + 1 <= (hover || rating) ? "text-red-600" : "text-gray-400"}`}
+                    className={`p-1 bg-transparent border-0 cursor-pointer ${i + 1 <= (hover || rating) ? "text-red-600" : "text-gray-400"}`}
                     onClick={() => handleRatingChange(i + 1)}
                     onMouseEnter={() => setHover(i + 1)}
                     onMouseLeave={() => setHover(rating)}
@@ -32,7 +35,7 @@ export default function RatingInput(props: RatingInputProps) {
                     <span className="text-4xl">&#9733;</span>
                 </button>
             ))}
-            
+            {props.error && <p className="text-sm text-red-600">{props.error}</p>}
         </div>
     );
 }
