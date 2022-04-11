@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Field } from '../../functions/types/formTypes';
 
@@ -14,18 +14,13 @@ export default function MultiselectInput(props: MultiselectInputProps) {
     const [openOptions, setOpenOptions] = useState(false);
     const [multiAnswers, setMultiAnswers] = useState<string[]>(answer.split(",") || []);
 
-    useEffect(() => {
-        let timeout = setTimeout(() => {
-            changeValueCB(field.id!, multiAnswers.join(","));
-        }, 1000);
-
-        return () => clearTimeout(timeout);
-    }, [multiAnswers]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>, value: string) => {
         if(e.target.checked) {
+            changeValueCB(field.id!, multiAnswers.concat(value).join(","));
             setMultiAnswers([...multiAnswers, value]);
         } else {
+            changeValueCB(field.id!, multiAnswers.filter(answer => answer !== value).join(","));
             setMultiAnswers(multiAnswers.filter(answer => answer !== value));
         }
     }
