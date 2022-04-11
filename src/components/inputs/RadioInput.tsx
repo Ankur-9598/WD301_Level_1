@@ -26,13 +26,14 @@ export default function RadioInput(props: RadioInputProps) {
                         <input 
                             type="radio" 
                             value={option}
-                            name={field.label} 
+                            id={`${index}`} 
+                            name={option} 
                             className="w-4 h-4"
                             checked={answer === option}
                             title='Select an option'
                             onChange={e => changeValueCB(field.id!, e.target.value)}
                         />
-                        <label className="text-gray-600 text-lg">{ option }</label>
+                        <label className="text-gray-600 text-lg" htmlFor={`${index}`}>{ option }</label>
                     </div>
                 ))}
             </div>

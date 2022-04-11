@@ -6,7 +6,7 @@ export default function FormCard(props: {form: FormData}) {
     const { form } = props;
 
     return (
-        <li className="flex flex-row w-full justify-between items-center my-2 rounded-lg py-2 px-4 shadow-sm bg-gray-200 hover:bg-gray-300">
+        <li className="flex flex-row w-full justify-between items-center my-2 rounded-lg py-2 px-4 shadow-sm bg-gray-200 hover:bg-gray-300" tabIndex={0}>
             <div className="">
                 <h2 className="text-xl font-medium">{form.title}</h2>
             </div>
