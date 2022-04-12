@@ -9,7 +9,7 @@ import { FormData } from '../functions/types/formTypes';
 import { createForm, me } from '../functions/ApiCalls';
 import { validateForm } from '../functions/utils/formUtils';
 
-export default function CreateForm() {
+export default function CreateForm(props: {closeModalCB: () => void}) {
     const [form, setForm] = useState<FormData>({
         title: "",
         description: "",
@@ -94,7 +94,13 @@ export default function CreateForm() {
                 </div>
 
                 <button type="submit" className="w-full py-2 rounded-lg bg-blue-500 text-lg text-white font-semibold hover:bg-gray-200 hover:text-blue-500 hover:shadow-lg">Create</button>
-
+                <button
+                    type="button"
+                    onClick={props.closeModalCB}
+                    className="w-full px-6 h-11 mt-4 border-red-400 rounded-lg text-red-400 font-semibold text-lg border-2 hover:text-red-500 hover:border-red-500"
+                >
+                    Cancel
+                </button>
             </form>
         </div>
     )

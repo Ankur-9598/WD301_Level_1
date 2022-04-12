@@ -29,7 +29,7 @@ export default function BackAndForthNav(props: BackAndForthNavProps) {
             return (
                 <button 
                     type="button" 
-                    className="text-sm bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-1 px-6 rounded focus:outline-none focus:shadow-outline" 
+                    className="text-sm bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-1 px-6 rounded focus:shadow-outline" 
                     onClick={_nextField}
                 >
                     Next
@@ -45,7 +45,7 @@ export default function BackAndForthNav(props: BackAndForthNavProps) {
             return (
                 <button 
                     type="button" 
-                    className="text-sm bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-1 px-4 rounded focus:outline-none focus:shadow-outline" 
+                    className="text-sm bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-1 px-4 rounded focus:shadow-outline" 
                     onClick={_prevField}
                 >
                     Previous

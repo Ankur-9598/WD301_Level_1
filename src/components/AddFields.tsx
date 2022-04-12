@@ -108,7 +108,6 @@ export default function AddFields( props: AddFieldProps ) {
                 <div className="flex flex-col py-2">
                     <label htmlFor="options">Options</label>
                     <input 
-                        autoFocus
                         type="text" 
                         id="options"
                         value={newField.options}
@@ -126,7 +125,6 @@ export default function AddFields( props: AddFieldProps ) {
                     <input 
                         min={2}
                         max={10}
-                        autoFocus
                         id="rating"
                         type="number" 
                         value={newField.value}
