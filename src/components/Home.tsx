@@ -1,4 +1,5 @@
 import { useQueryParams } from 'raviger';
+import ReactDragListView from "react-drag-listview";
 import React, { useEffect, useState } from 'react';
 
 import { listForms } from '../functions/ApiCalls';
@@ -65,6 +66,8 @@ export default function Home() {
 
     const closeModal = () => setOpen(false);
 
+
+
     return (
         <div className="flex flex-col">
             {loading && <Loading />}
@@ -87,15 +90,28 @@ export default function Home() {
 
             { (search !== undefined && search !== "") && <h2 className="text-xl font-bold mb-4">Search results for "{search}"</h2> }
 
-            <ul>
-                {formsData.results.filter(form => form.title.toLowerCase().includes(search?.toLowerCase() || ""))
-                .map(form => (
-                    <FormCard
-                        key={form.id}
-                        form={form}
-                    />
-                ))}
-            </ul>
+          
+            <ReactDragListView 
+                onDragEnd={(fromIndex, toIndex) => {
+                    const data = [...formsData.results];
+                    const item = data.splice(fromIndex, 1)[0];
+                    data.splice(toIndex, 0, item);
+                    setFormsData({...formsData, results: data});  
+                }}
+                nodeSelector='li'
+                handleSelector='a'
+            >
+                <ol>
+                    {formsData.results.filter(form => form.title.toLowerCase().includes(search?.toLowerCase() || ""))
+                    .map(form => (
+                        <FormCard
+                            key={form.id}
+                            form={form}
+                        />
+                    ))}
+                    
+                </ol>
+            </ReactDragListView>
 
             <PaginationContainer
                 count={formsData.count}

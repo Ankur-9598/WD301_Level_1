@@ -1,4 +1,5 @@
 import { Link, navigate } from 'raviger';
+import ReactDragListView from "react-drag-listview";
 import React, { useEffect, useReducer, useRef, useState } from 'react';
 
 import { Pagination } from '../functions/types/commonTypes';
@@ -126,16 +127,31 @@ export default function Form(props: {formId: number}) {
                     ref={titleRef}
                 />
             </div>
-            <div className="divide-y divide-gray-400 divide-dotted">
-                {data.formFields.map(field => (
-                    <Label 
-                        key={field.id}
-                        field={field}
-                        formId={props.formId}
-                        removeFieldCB={handleRemoveField}
-                    />
-                ))}
-            </div>
+            
+            <ReactDragListView
+                onDragEnd={(fromIndex, toIndex) => {
+                    const dragData = [...data.formFields];
+                    const item = dragData.splice(fromIndex, 1)[0];
+                    dragData.splice(toIndex, 0, item);
+                    dispatch({
+                        type: "set_form_fields",
+                        payload: dragData
+                    })
+                }}
+                nodeSelector='li'
+                handleSelector='a'
+            >
+                <ol>
+                    {data.formFields.map(field => (
+                        <Label 
+                            key={field.id}
+                            field={field}
+                            formId={props.formId}
+                            removeFieldCB={handleRemoveField}
+                        />
+                    ))}
+                </ol>
+            </ReactDragListView>
 
 
             <Modal open={data.open} onCloseCB={closeModal}>

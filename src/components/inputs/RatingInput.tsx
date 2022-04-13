@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { Error } from '../../functions/types/commonTypes';
 import { Field } from '../../functions/types/formTypes';
-import { Answer } from '../../functions/types/submissionTypes';
 
 interface RatingInputProps {
     field: Field;

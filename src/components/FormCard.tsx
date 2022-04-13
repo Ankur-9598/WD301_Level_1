@@ -23,6 +23,12 @@ export default function FormCard(props: {form: FormData}) {
                 >
                     Preview
                 </Link>
+                <Link 
+                    href="#"
+                    className="px-4 py-1 rounded-lg font-semibold text-lg border-2 text-slate-670"
+                >
+                    Drag
+                </Link>
             </div>
         </li>
     );
